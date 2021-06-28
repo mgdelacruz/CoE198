@@ -54,10 +54,10 @@ def on_message(client, userdata, msg):
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
-client.connect("127.0.0.1", 1883,60)
+#client.connect("127.0.0.1", 1883,60)
+client.connect("10.158.56.21", 1883, 60)
 client.will_set(local_ip+"/connection_status", local_ip + " DISCONNECTED")
 client.will_set(local_ip+"/disconnection_log", "Due to socket error")
-#client.connect("10.158.56.21", 1883, 60)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
