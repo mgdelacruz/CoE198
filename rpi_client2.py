@@ -2,11 +2,26 @@ import paho.mqtt.client as mqtt
 import socket
 import psutil
 #import time
+import fcntl
+import struct
 from datetime import datetime
 
 thresh = 37.5
-hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
+ifname = socket.gethostname()
+print(ifname)
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915, # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
+local_ip = get_ip_address('eth0')
+
+#local_ip = socket.gethostbyname(hostname)
+#local_ip = socket.gethostbyname()
+#print(local_ip)
+
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
