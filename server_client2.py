@@ -1,6 +1,23 @@
 import paho.mqtt.client as mqtt
+import os
+#import threading
 
 f = open("node_IPs.txt", "r")
+
+def ping_sweep():
+    print("in fcn")
+    f.seek(0)
+    for ip in f:
+        print("in for loop")
+        ip = ip.rstrip()
+        print(ip)
+        response = os.system("sudo ping -c 1 " + ip + " > dump.txt")
+        #check the response:
+        if (not response):
+            print(ip+" is CONNECTED")
+        else:
+            print(ip+" is DISCONNECTED")
+    f.seek(0)
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -13,10 +30,12 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("$SYS/broker/clients/total")
     client.subscribe("$SYS/broker/time")
 
-    for x in f:
-        x = x.replace('\n','/+')
-        print(x)
-        client.subscribe(x)
+    for ip in f:
+        ip = ip.replace('\n','/+')
+        print(ip)
+        client.subscribe(ip)
+
+    ping_sweep()
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
@@ -26,6 +45,7 @@ def on_message(client, userdata, msg):
     client.publish("flags", "performance")
     client.publish("flags", "36.7")
    # client.publish("threshold", "36.7")
+    #p_thread = threading.Thread(target=ping_sweep)
     client.publish("flags", "disconnect")
 
 # Logs disconnection and set flags for disconnection detection
