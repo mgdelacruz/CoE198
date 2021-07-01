@@ -10,9 +10,13 @@ app = Flask(__name__)
 def homepage():
     return render_template('homepage.html')
 
-@app.route('/mgmt_mod')
-def mgmt_mod():
+@app.route('/module')
+def mgmt_module():
     return render_template('module.html')
+
+@app.route('/module/perf_monitor')
+def performance_monitor():
+    return render_template('perf_monitor.html')
 
 if __name__=="__main__":
     app.run(debug=True)
