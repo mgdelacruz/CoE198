@@ -1,3 +1,4 @@
+from enum import unique
 from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -5,9 +6,9 @@ from flask_mqtt import Mqtt
 import os
 
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///catifs.db'
-#db = SQLAlchemy(app)
-app.config['MQTT_BROKER_URL'] = 'http://10.158.56.21' <- i haz my own broker how this oh noes
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///catifs.db'
+db = SQLAlchemy(app)
+app.config['MQTT_BROKER_URL'] = 'http://10.158.56.21' #<- i haz my own broker how this oh noes
 #app.config['MQTT_BROKER_PORT'] = 1883 <-default
 #app.config['MQTT_USERNAME'] = 'user' <-uhh authentication is out of scope so no need
 #app.config['MQTT_PASSWORD'] = 'secret' <- only needed when username is provided
@@ -15,40 +16,87 @@ app.config['MQTT_BROKER_URL'] = 'http://10.158.56.21' <- i haz my own broker how
 app.config['MQTT_TLS_ENABLED'] = False  # set TLS to disabled for testing purposes
 mqtt = Mqtt(app)
 
+class Nodes(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    device = db.Column(db.String(200), nullable=False)
+    ip = db.Column(db.String(15), primary_key=True)
+#class Performance(db.Model):
+    cpu = db.Column(db.Float, nullable=True)
+    memory = db.Column(db.Float, nullable=True)
+#class Uptime(db.Model):
+#    status = db.Column(db.String(15), nullable = False)
+#    last_disconnect = db.Column(db.DateTime)
+#    disconnection_details = db.Column(db.Text)
+#class Threshold(db.Model):
+#    current_threshold = (db.Float, nullable=False)
+
 f = open("node_IPs.txt", "r")
-topics = []
+IPs = []
+
+for ip in f:
+    IPs.append(ip.rstrip())
+
+print(IPs)
 
 def ping_sweep():
     print("in fcn")
-    f.seek(0)
-    for ip in f:
+    for ip in IPs:
         print("in for loop")
-        ip = ip.rstrip()
         print(ip)
         response = os.system("sudo ping -c 1 " + ip + " > dump.txt")
         #check the response:
         if (not response):
-            print(ip+" is CONNECTED")
+            print(ip + ' is CONNECTED')
         else:
-            print(ip+" is DISCONNECTED")
-    f.seek(0)
+            print(ip + 'is DISCONNECTED')
 
 @mqtt.on_connect()
 def handle_connect(client, userdata, flags, rc):
-    f.seek(0)
-    for ip in f:
-        ip = ip.replace('\n','/+')
-        print(ip)
-        mqtt.subscribe(ip)
-    f.seek(0)
+    for ip in IPs:
+        topic = ip + '/+'
+        print(topic)
+        mqtt.subscribe(topic)
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
-    data = dict(
-        topic=message.topic,
-        payload=message.payload.decode()
-    )
-    if
+
+    raw_topic=message.topic,
+    payload=message.payload.decode()
+    temp = raw_topic.split('/', 1)
+    device_ip = temp[1]
+    print(device_ip)
+    topic = temp[2]
+    print(topic)
+
+    if (topic == 'cpu'):
+        node = Nodes(
+            device = 'Raspberry Pi',
+            ip = device_ip,
+            cpu = float(payload)
+        )
+
+        try:
+            db.session.add(node)
+            db.session.commit()
+
+        except:
+            return 'There was an issue adding your task'
+    elif (topic == 'mem'):
+        node = Nodes(
+            device = 'Raspberry PI',
+            ip = device_ip,
+            memory = float(payload)
+        )
+
+        try:
+            db.session.add(node)
+            db.session.commit()
+
+        except:
+            return 'There was an issue adding your task'
+    #elif (topic == 'uptime'):
+    #else:
+
 
 @app.route('/')
 def homepage():
@@ -60,7 +108,20 @@ def mgmt_module():
 
 @app.route('/module/perf_monitor')
 def performance_monitor():
-    return render_template('perf_monitor.html')
+    mqtt.publish('flags', 'performance')
+    devices = Nodes.query.order_by(Nodes.id).all()
+    #return render_template('product-page.html', tasks = tasks)
+    return render_template('perf_monitor.html', devices = devices)
+
+#@app.route('/module/uptime_monitor')
+#def uptime_monitor():
+#    mqtt.publish('flags', 'uptime')
+#    return render_template('uptime_monitor.html')
+
+#@app.route('/module/thresh_adjust', methods=['POST', 'GET'])
+#def performance_monitor():
+#    mqtt.publish('flag', '36.5')
+#    return render_template('thresh_adjust.html')
 
 if __name__=="__main__":
     app.run(debug=True)
