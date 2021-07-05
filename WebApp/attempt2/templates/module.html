@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block head %}
+
+<title> CATIFS via ICOTS </title>
+
+{% endblock %}
+
+{% block body %}
+
+    <div>
+      <h1>MANAGEMENT MODULE</h1>
+    </div>
+
+    <a href = "/module/uptime_monitor"> UPTIME MONITOR</a>
+    <p> Manually checkup each node, View details of registered disconnections</p>
+    <a href = "/module/perf_monitor"> PERFORMANCE MONITOR</a>
+    <p>View current CPU and Memory usage of each node</p>
+    <a href = "/module/thresh_adjust"> THRESHOLD ADJUSTMENT</a>
+    <p>Adjust temperature threshold for fever detection</p>
+
+{% endblock %}

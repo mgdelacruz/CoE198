@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from flask_mqtt import Mqtt
+#from flask_mqtt import Mqtt
 import os
 #import logging
 
@@ -13,7 +13,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.join(BASE_DIR, "catifs.db")
-
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
@@ -49,20 +48,23 @@ class Nodes(db.Model):
 
 f = open("node_IPs.txt", "r")
 IPs = []
-
 for ip in f:
     IPs.append(ip.rstrip())
 
 def ping_sweep():
 
     for ip in IPs:
-        logging.debug("in for loop: "+ip)
+        print("in for loop: "+ip)
         response = os.system("sudo ping -c 1 " + ip + " > dump.txt")
          #check the response:
         if (not response):
             print(ip + ' is CONNECTED')
         else:
             print(ip + 'is DISCONNECTED')
+
+@mqtt.on_log()
+def handle_logging(client, userdata, level, buf):
+    print(client, userdata, level, buf)
 
 #@mqtt.on_log()
 #def handle_logging(client, userdata, level, buf):
@@ -77,16 +79,21 @@ def ping_sweep():
 #    if level == MQTT_LOG_DEBUG:
 #        print('Debug: {}'.format(buf))
 
+@mqtt.on_publish()
+def handle_publish(client, userdata, mid):
+    print('Published message with mid {}.'
+          .format(mid))
+
 @mqtt.on_connect()
 def handle_connect(client, userdata, flags, rc):
-#    if not rc:
-    for ip in IPs:
-        topic = ip + '/+'
-#            logging.debug(topic)
-        mqtt.subscribe(topic)
-#    else:
-#        logging.error("Bad connection returned code:",rc)
-#        client.bad_connection_flag=True
+    if not rc:
+        for ip in IPs:
+            topic = ip + '/+'
+            print(topic)
+            mqtt.subscribe(topic)
+    else:
+        print("Bad connection returned code:",rc)
+        client.bad_connection_flag=True
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
@@ -139,7 +146,7 @@ def mgmt_module():
 
 @app.route('/module/perf_monitor')
 def performance_monitor():
-    mqtt.publish('flags', 'performance')
+    mqtt.publish('flags', 'performance',qos=2)
     devices = Nodes.query.order_by(Nodes.id).all()
     #return render_template('product-page.html', tasks = tasks)
     return render_template('perf_monitor.html', devices = devices)
@@ -157,4 +164,3 @@ def performance_monitor():
 if __name__=="__main__":
     app.run(host=os.getenv('IP', '0.0.0.0'),
             port=int(os.getenv('PORT',4444)))
-    app.run(debug=True)
