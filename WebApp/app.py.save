@@ -3,20 +3,12 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_mqtt import Mqtt
 import os
-#import logging
-
-#logging.basicConfig(
-#                    filename='app.log',
-#                    filemode='w',
-#                    format='%(name)s - %(levelname)s - %(message)s'
-#                    )
+import os.path
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.join(BASE_DIR, "catifs.db")
-
-
+db_path = 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///catifs.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 app.config['MQTT_BROKER_URL'] = 'http://10.158.56.21' #<- i haz my own broker how this oh noes
@@ -44,8 +36,6 @@ class Nodes(db.Model):
 #    disconnection_details = db.Column(db.Text)
 #class Threshold(db.Model):
 #    current_threshold = (db.Float, nullable=False)
-    def __repr__(self):
-        return '<Node %r>' %self.id
 
 f = open("node_IPs.txt", "r")
 IPs = []
@@ -53,40 +43,26 @@ IPs = []
 for ip in f:
     IPs.append(ip.rstrip())
 
-def ping_sweep():
+print(IPs)
 
+def ping_sweep():
+    print("in fcn")
     for ip in IPs:
-        logging.debug("in for loop: "+ip)
+        print("in for loop")
+        print(ip)
         response = os.system("sudo ping -c 1 " + ip + " > dump.txt")
-         #check the response:
+        #check the response:
         if (not response):
             print(ip + ' is CONNECTED')
         else:
             print(ip + 'is DISCONNECTED')
 
-#@mqtt.on_log()
-#def handle_logging(client, userdata, level, buf):
-#    if level == MQTT_LOG_INFO:
-#        print('Info: {}'.format(buf))
-#    if level == MQTT_LOG_NOTICE:
-#        print('Notice: {}'.format(buf))
-#    if level == MQTT_LOG_WARNING:
-#        print('Warning: {}'.format(buf))
-#    if level == MQTT_LOG_ERR:
-#        print('Error: {}'.format(buf))
-#    if level == MQTT_LOG_DEBUG:
-#        print('Debug: {}'.format(buf))
-
 @mqtt.on_connect()
 def handle_connect(client, userdata, flags, rc):
-#    if not rc:
     for ip in IPs:
         topic = ip + '/+'
-#            logging.debug(topic)
+        print(topic)
         mqtt.subscribe(topic)
-#    else:
-#        logging.error("Bad connection returned code:",rc)
-#        client.bad_connection_flag=True
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
