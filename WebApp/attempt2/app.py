@@ -2,20 +2,16 @@ from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os, tempfile
-#import logging
+import logging
 
-#logging.basicConfig(
-#                    filename='app.log',
-#                    filemode='w',
-#                    format='%(name)s - %(levelname)s - %(message)s'
-#                    )
-
-tmpdir = tempfile.mkdtemp()
-filename = os.path.join(tmpdir, 'flask-mqtt-fifo')
+logging.basicConfig(
+                    filename='app.log',
+                    filemode='w',
+                    format='%(name)s - %(levelname)s - %(message)s'
+                    )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.join(BASE_DIR, "catifs.db")
-
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -52,7 +48,7 @@ def mgmt_module():
 
 @app.route('/module/perf_monitor')
 def performance_monitor():
-    mqtt.publish('flags', 'performance',qos=2)
+    #do something here to connect to mqtt i guess
     devices = Nodes.query.order_by(Nodes.id).all()
     #return render_template('product-page.html', tasks = tasks)
     return render_template('perf_monitor.html', devices = devices)
@@ -68,6 +64,9 @@ def performance_monitor():
 #    return render_template('thresh_adjust.html')
 
 if __name__=="__main__":
+
+    tmpdir = tempfile.mkdtemp()
+    filename = os.path.join(tmpdir, 'flask-mqtt-fifo')
     try:
         os.mkfifo(filename)
     except OSError as e:
@@ -75,7 +74,7 @@ if __name__=="__main__":
     else:
         global fifo
         fifo_write = open(filename, 'w')
-        fifo_read = open(filename, 'r')
+        fifo_read = open('mqtt-flask-fifo', 'r')
         app.run(host=os.getenv('IP', '0.0.0.0'),
                 port=int(os.getenv('PORT',4444)))
         fifo_write.close()

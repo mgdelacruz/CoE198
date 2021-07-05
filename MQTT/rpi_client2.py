@@ -5,6 +5,7 @@ import psutil
 import fcntl
 import struct
 from datetime import datetime
+import threading
 
 thresh = 37.5
 ifname = socket.gethostname()
