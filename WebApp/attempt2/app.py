@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os, tempfile
 import logging
+import json
 
 logging.basicConfig(
                     filename='app.log',
@@ -55,7 +56,6 @@ def performance_monitor():
 
 #@app.route('/module/uptime_monitor')
 #def uptime_monitor():
-#    mqtt.publish('flags', 'uptime')
 #    return render_template('uptime_monitor.html')
 
 #@app.route('/module/thresh_adjust', methods=['POST', 'GET'])

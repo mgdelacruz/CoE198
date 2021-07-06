@@ -7,6 +7,8 @@ import signal
 import threading
 import json
 
+current_threshold = 37.5 #initial threshold value on pi
+old_threshold = None
 hash={} #stores ip to device no. mapping
 IPs = [] #stores list of ip addresses read from a file
 cpu_usage = []
@@ -122,15 +124,15 @@ def on_message(client, userdata, msg):
                 "ip":ip,
                 "uptime":"DISCONNECTED",
                 "details":payload
-            }
+        }
         to_write = json.dumps(message)
         server_to_app.write(to_write)
 
     elif(topic == "change_var_response"):
         message = {
-                "ip":ip,
-                "change_var":payload
-            }
+                "ip":ip
+        }
+        message.update(json.loads(payload))
         to_write = json.dumps(message)
         server_to_app.write(to_write)
 
@@ -165,7 +167,6 @@ def fifo(filename,loop):
     global filenames
     global tmpdirs
     global fps
-    
 
     tmpdirs.append(tempfile.mkdtemp())
     if loop>0:

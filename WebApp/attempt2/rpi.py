@@ -8,8 +8,10 @@ import threading
 import schedule
 import logging
 import sys
+import json
 
-threshold = 37.5 #variable to be adjusted on prompt
+current_threshold = 37.5 #variable to be adjusted on prompt
+old_threshold = None
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -58,12 +60,16 @@ def on_message(client, userdata, msg):
     msg.payload = msg.payload.decode("utf-8")
     print(msg.topic+" "+str(msg.payload))
 
-    global thresh
-    old_thresh = thresh
-    thresh = float(msg.payload)
-    print("old thresh: " +str(old_thresh))
-    print("new thresh: " + str(thresh))
-    client.publish(local_ip+"/", "threshold has been changed from " + str(old_thresh)+" to " + str(thresh))
+    global current_threshold
+    global old_threshold
+    old_threshold = current_threshold
+    current_threshold = float(msg.payload)
+    message = {
+            "from":old_threshold,
+            "to":current_threshold
+    }
+    to_pub = json.dumps(message)
+    client.publish(local_ip+"/change_var_response", to_pub)
 
 def on_disconnect(client, userdata, rc):
     logging.info("disconnecting reason " + str(rc))
