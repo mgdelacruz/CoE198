@@ -10,7 +10,6 @@ import logging
 import sys
 
 threshold = 37.5 #variable to be adjusted on prompt
-local_ip = None
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -20,13 +19,11 @@ def get_ip_address(ifname):
         struct.pack('256s', bytes(ifname[:15],'utf-8'))
     )[20:24])
 
+local_ip = get_ip_address('eth0')
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
-
-    global local_ip
-    local_ip = get_ip_address('eth0')
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
