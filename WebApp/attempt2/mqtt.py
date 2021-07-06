@@ -12,6 +12,9 @@ IPs = [] #stores list of ip addresses read from a file
 cpu_usage = []
 mem_usage = []
 server_to_app = None
+filenames = []
+tmpdirs = []
+fps =[]
 
 def ping_sweep():
     print("in fcn")
@@ -39,6 +42,7 @@ def ping_sweep():
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
 
+    global server_to_app
     if rc==0:
         client.connected_flag = True
         print("connected OK Returned code=",rc)
@@ -51,7 +55,6 @@ def on_connect(client, userdata, flags, rc):
 
         #initialization
         signal.signal(signal.SIGINT, signal_handler)
-        global server_to_app
         server_to_app = fifo('server_to_app', 0)
 
         #performance monitor initialization and subscribe
@@ -73,7 +76,6 @@ def on_connect(client, userdata, flags, rc):
                 "num":NUM_NODES
             }
             to_write = json.dumps(message)
-            global server_to_app
             server_to_app.write(to_write)
         f.close()
 
@@ -96,6 +98,7 @@ def on_connect(client, userdata, flags, rc):
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
+    global server_to_app
     raw_topic=msg.topic,
     payload=msg.payload.decode("utf-8")
     temp = raw_topic.split('/', 1)
@@ -121,7 +124,6 @@ def on_message(client, userdata, msg):
                 "details":payload
             }
         to_write = json.dumps(message)
-        global server_to_app
         server_to_app.write(to_write)
 
     elif(topic == "change_var_response"):
@@ -130,7 +132,6 @@ def on_message(client, userdata, msg):
                 "change_var":payload
             }
         to_write = json.dumps(message)
-        global server_to_app
         server_to_app.write(to_write)
 
 def on_disconnect(client, userdata, rc):
@@ -164,9 +165,7 @@ def fifo(filename,loop):
     global filenames
     global tmpdirs
     global fps
-    filenames = []
-    tmpdirs = []
-    fps =[]
+    
 
     tmpdirs.append(tempfile.mkdtemp())
     if loop>0:
