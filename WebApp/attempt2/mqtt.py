@@ -7,14 +7,8 @@ import signal
 import threading
 import json
 
-global hash_table #stores ip to device no. mapping
-global IPs #stores list of ip addresses read from a file
-global cpu_usage
-global mem_usage
-global server_to_app
-
-hash_table={}
-IPs = []
+hash={} #stores ip to device no. mapping
+IPs = [] #stores list of ip addresses read from a file
 cpu_usage = []
 mem_usage = []
 server_to_app = None
@@ -31,6 +25,7 @@ def ping_sweep():
                 "uptime":"CONNECTED"
             }
             to_write = json.dumps(message)
+            global server_to_app
             server_to_app.write(to_write)
         else:
             message = {
@@ -39,6 +34,7 @@ def ping_sweep():
                 "details":"no ping response"
             }
             to_write = json.dumps(message)
+            global server_to_app
             server_to_app.write(to_write)
 
 # The callback for when the client receives a CONNACK response from the server.
@@ -56,6 +52,7 @@ def on_connect(client, userdata, flags, rc):
 
         #initialization
         signal.signal(signal.SIGINT, signal_handler)
+        global server_to_app
         server_to_app = fifo('server_to_app', 0)
 
         #performance monitor initialization and subscribe
@@ -63,9 +60,13 @@ def on_connect(client, userdata, flags, rc):
         f = open("node_IPs.txt", "r")
         for ip in f:
             NUM_NODES = NUM_NODES+1
+            global IPs
             IPs.append(ip.rstrip())
             client.subscribe(IPs[-1])
-            hash_table.update({IPs[-1] : NUM_NODES})
+            global hash
+            hash.update({IPs[-1] : NUM_NODES})
+            global cpu_usage
+            global mem_usage
             cpu_usage[NUM_NODES-1] = fifo('cpu_usage', NUM_NODES)
             mem_usage[NUM_NODES-1] = fifo('mem_usage', NUM_NODES)
             message = {
@@ -73,6 +74,7 @@ def on_connect(client, userdata, flags, rc):
                 "num":NUM_NODES
             }
             to_write = json.dumps(message)
+            global server_to_app
             server_to_app.write(to_write)
         f.close()
 
@@ -105,10 +107,12 @@ def on_message(client, userdata, msg):
 
     if(topic == "cpu"):
         key = hash[ip]
+        global cpu_usage
         cpu_usage[key-1].write(payload)
 
     elif(topic == "mem"):
         key = hash[ip]
+        global mem_usage
         mem_usage[key-1].write(payload)
 
     elif(topic == "disconnection"):
@@ -118,6 +122,7 @@ def on_message(client, userdata, msg):
                 "details":payload
             }
         to_write = json.dumps(message)
+        global server_to_app
         server_to_app.write(to_write)
 
     elif(topic == "change_var_response"):
@@ -126,6 +131,7 @@ def on_message(client, userdata, msg):
                 "change_var":payload
             }
         to_write = json.dumps(message)
+        global server_to_app
         server_to_app.write(to_write)
 
 def on_disconnect(client, userdata, rc):

@@ -9,25 +9,23 @@ import schedule
 import logging
 import sys
 
-global threshold
-global local_ip
-
 threshold = 37.5 #variable to be adjusted on prompt
 local_ip = None
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915, # SIOCGIFADDR
+        struct.pack('256s', bytes(ifname[:15],'utf-8'))
+    )[20:24])
+
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
 
-    hostname = socket.gethostname()
-    print(hostname)
-    def get_ip_address(hostname):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        return socket.inet_ntoa(fcntl.ioctl(
-            s.fileno(),
-            0x8915, # SIOCGIFADDR
-            struct.pack('256s', bytes(hostname[:15],'utf-8'))
-        )[20:24])
+    global local_ip
     local_ip = get_ip_address('eth0')
 
     # Subscribing in on_connect() means that if we lose the connection and
