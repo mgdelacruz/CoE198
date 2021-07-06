@@ -15,6 +15,7 @@ server_to_app = None
 
 def ping_sweep():
     print("in fcn")
+    global server_to_app
     for ip in IPs:
         print("in for loop")
         response = os.system("sudo ping -c 1 " + ip + " > dump.txt")
@@ -25,7 +26,6 @@ def ping_sweep():
                 "uptime":"CONNECTED"
             }
             to_write = json.dumps(message)
-            global server_to_app
             server_to_app.write(to_write)
         else:
             message = {
@@ -34,7 +34,6 @@ def ping_sweep():
                 "details":"no ping response"
             }
             to_write = json.dumps(message)
-            global server_to_app
             server_to_app.write(to_write)
 
 # The callback for when the client receives a CONNACK response from the server.
