@@ -31,8 +31,8 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("change_var")
 
     try:
-        cpu_thread = threading.Thread(cpu_monitor)
-        memory_thread = threading.Thread(memory_monitor)
+        cpu_thread = threading.Thread(target = cpu_monitor)
+        memory_thread = threading.Thread(target = memory_monitor)
     except:
         print ("Error: unable to start thread")
         client.disconnect() # disconnect

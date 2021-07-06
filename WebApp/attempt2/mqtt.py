@@ -80,7 +80,7 @@ def on_connect(client, userdata, flags, rc):
 
         #start threshold adjustment thread
         try:
-            change_var_thread = threading.Thread(change_var)
+            change_var_thread = threading.Thread(target = change_var)
         except:
             print ("Error: unable to start thread")
             client.disconnect() # disconnect
