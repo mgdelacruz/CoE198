@@ -82,7 +82,7 @@ def ping_sweep():
 def ping_prompt_loop():
     global ping_prompt
     while(True):
-        prompt = ping_prompt.read()
+        prompt = ping_prompt.read(1)
         if prompt:
             ping_sweep()
 
