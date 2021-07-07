@@ -48,11 +48,13 @@ def on_connect(client, userdata, flags, rc):
 def cpu_monitor():
     while(True):
         client.publish(local_ip+"/cpu",psutil.cpu_percent(interval=1))
+        print("cpu usage:",x)
 
 def memory_monitor():
     while(True):
         x = str((psutil.virtual_memory().used/psutil.virtual_memory().total)*100)
-        client.publish(local_ip+"/mem", "Memory Usage: " + x[0:5] + "%")
+        client.publish(local_ip+"/mem", x[0:5])
+        print("memory usage:",x)
 
 # The callback for when a PUBLISH message is received from the server.
 #handles change a variable feature
@@ -70,6 +72,7 @@ def on_message(client, userdata, msg):
     }
     to_pub = json.dumps(message)
     client.publish(local_ip+"/change_var_response", to_pub)
+    print("Disconnection: ",message) #debug
 
 def on_disconnect(client, userdata, rc):
     logging.info("disconnecting reason " + str(rc))

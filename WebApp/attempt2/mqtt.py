@@ -14,6 +14,8 @@ IPs = [] #stores list of ip addresses read from a file
 cpu_usage = []
 mem_usage = []
 server_to_app = None
+change_var_error = None
+change_var_app = None
 filenames = []
 tmpdirs = []
 fps =[]
@@ -32,6 +34,8 @@ def ping_sweep():
             }
             to_write = json.dumps(message)
             server_to_app.write(to_write)
+            print("ping sweep: ",message) #debug
+
         else:
             message = {
                 "ip":ip,
@@ -40,6 +44,7 @@ def ping_sweep():
             }
             to_write = json.dumps(message)
             server_to_app.write(to_write)
+            print("ping sweep: ",message) #debug
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -57,7 +62,7 @@ def on_connect(client, userdata, flags, rc):
 
         #initialization
         signal.signal(signal.SIGINT, signal_handler)
-        server_to_app = fifo('server_to_app', 0)
+        server_to_app = fifo('server_to_app', 0) #creates fifo for server to web app communicaton
 
         #performance monitor initialization and subscribe
         NUM_NODES = 0
@@ -79,9 +84,17 @@ def on_connect(client, userdata, flags, rc):
             }
             to_write = json.dumps(message)
             server_to_app.write(to_write)
+            print("hash table: ",message) #debug
+
         f.close()
 
         #start threshold adjustment thread
+        global change_var_server
+        global change_var_app
+        change_var_server = fifo('change_var_server', 0)
+        change_var_app = open('change_var', 'r')
+        global fps
+        fps.append(change_var_app)
         try:
             change_var_thread = threading.Thread(target = change_var,args=())
         except:
@@ -113,11 +126,13 @@ def on_message(client, userdata, msg):
         key = hash[ip]
         global cpu_usage
         cpu_usage[key-1].write(payload)
+        print("CPU usage: ",payload) #debug
 
     elif(topic == "mem"):
         key = hash[ip]
         global mem_usage
         mem_usage[key-1].write(payload)
+        print("CPU usage: ",payload) #debug
 
     elif(topic == "disconnection"):
         message = {
@@ -127,6 +142,7 @@ def on_message(client, userdata, msg):
         }
         to_write = json.dumps(message)
         server_to_app.write(to_write)
+        print("Disconnection: ",message) #debug
 
     elif(topic == "change_var_response"):
         message = {
@@ -135,6 +151,7 @@ def on_message(client, userdata, msg):
         message.update(json.loads(payload))
         to_write = json.dumps(message)
         server_to_app.write(to_write)
+        print("Change Var Response: ",message) #debug
 
 def on_disconnect(client, userdata, rc):
     raise(signal.SIGUSR1)
@@ -186,12 +203,11 @@ def fifo(filename,loop):
         return fp
 
 def change_var():
-    change_var_server = fifo('change_var_server', 0)
-    change_var_app = open('change_var', 'r')
     while (True):
         value = float(change_var_app.read())
         if value == TypeError:
-            change_var_server.write("Please Enter Valid Value")
+            change_var_error.write("Invalid Input")
+            print("Change Var Error: Invalid Input")
         else:
             client.publish("change_var", value)
 
@@ -207,7 +223,6 @@ Initialise_client_object()
 client.connect("10.158.56.21", 1883, 60)     #connect to broker
 while not client.connected_flag and not client.bad_connection_flag: #wait in loop
     print("In wait loop")
-    time.sleep(1)
 if client.bad_connection_flag:
     client.loop_stop()    #Stop loop
     sys.exit()
