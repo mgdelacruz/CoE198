@@ -164,17 +164,6 @@ def on_connect(client, userdata, flags, rc):
             print("opened cpu and mem files") #debug
 
             #uptime monitor initialization
-            global ping_prompt
-            ping_prompt=open("ping_prompt", "r")
-            print("start ping prompt thread") #debug
-            try:
-                ping_prompt = threading.Thread(target = ping_prompt_loop,args=())
-            except:
-                print ("Error: unable to start uptime thread")
-                client.disconnect() # disconnect
-            else:
-                ping_prompt.daemon = True
-                ping_prompt.start()
 
             print("initializing uptime monitor threads") #debug
             ping_sweep()
@@ -204,14 +193,16 @@ def on_connect(client, userdata, flags, rc):
 
         #start ping prompt thread
         print("initializing ping prompt thread") #debug
+        global ping_prompt
+        ping_prompt = open("ping_prompt","r")
         try:
             ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
         else:
-            change_var_thread.daemon = True
-            change_var_thread.start()
+            ping_prompt_thread.daemon = True
+            ping_prompt_thread.start()
 
     else:
         logging.info("Bad connection Returned code=",str(rc))
