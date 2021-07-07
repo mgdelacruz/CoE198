@@ -130,7 +130,7 @@ def change_var(NUM_NODES):
     for i in range(NUM_NODES-1):
         change_var_server.append(fifo('change_var_server', i+1))
     while (True):
-        value = float(change_var_app.read())
+        value = float(change_var_app.read(4))
         print("read change var file") #debug
         client.publish("change_var", value)
 
