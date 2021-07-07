@@ -9,6 +9,7 @@ import schedule
 import logging
 import sys
 import json
+import os
 
 current_threshold = 37.5 #variable to be adjusted on prompt
 old_threshold = None
@@ -47,14 +48,15 @@ def on_connect(client, userdata, flags, rc):
 
 def cpu_monitor():
     while(True):
-        client.publish(local_ip+"/cpu",psutil.cpu_percent(interval=1))
-        print("cpu usage:",x)
+        x=psutil.cpu_percent(interval=1)
+        client.publish(local_ip+"/cpu",x)
+        os.system(str(x), " > cpu.txt")
 
 def memory_monitor():
     while(True):
         x = str((psutil.virtual_memory().used/psutil.virtual_memory().total)*100)
         client.publish(local_ip+"/mem", x[0:5])
-        print("memory usage:",x)
+        os.system(str(x), " > mem.txt")
 
 # The callback for when a PUBLISH message is received from the server.
 #handles change a variable feature
