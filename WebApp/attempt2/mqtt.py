@@ -229,7 +229,9 @@ def fifo(filename,loop):
         client.loop_stop()    #Stop loop
         sys.exit()
     else:
+        print("made a fifo file")
         fp = open(filenames[-1], 'w')
+        print("opened a fifo file")
         fps.append(fp)
         return fp
 
