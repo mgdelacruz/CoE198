@@ -145,6 +145,7 @@ def on_connect(client, userdata, flags, rc):
         signal.signal(signal.SIGINT, signal_handler)
         NUM_NODES = 0
         uptime_threads = []
+        global fps
         f = open("node_IPs.txt", "r")
         for ip in f:
             print("iterating through ips in node_ip.txt") #debug
@@ -161,6 +162,8 @@ def on_connect(client, userdata, flags, rc):
             global mem
             cpu.append(open("cpu"+str(NUM_NODES)+".txt", "a"))
             mem.append(open("mem"+str(NUM_NODES)+".txt", "a"))
+            fps.append(cpu[-1])
+            fps.append(mem[-1])
             print("opened cpu and mem files") #debug
 
             #uptime monitor initialization
@@ -195,6 +198,7 @@ def on_connect(client, userdata, flags, rc):
         print("initializing ping prompt thread") #debug
         global ping_prompt
         ping_prompt = open("ping_prompt","r")
+        fps.append(ping_prompt)
         try:
             ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
         except:
