@@ -73,6 +73,7 @@ def ping_sweep():
         print("in for loop")
         response = os.system("sudo ping -c 1 " + ip + " > dump.txt")
         dev_no = hash[ip]
+        print("ip: " + ip + " dev_no: "+ dev_no)
         #check the response:
         if (not response):
             connected_flags[dev_no-1] = 1
