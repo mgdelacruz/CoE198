@@ -231,7 +231,7 @@ def fifo(filename,loop):
     else:
         print("made a fifo file")
         fp = open(filenames[-1], 'w')
-        print("opened a fifo file")
+        print("opened a fifo file: ", str(fp))
         fps.append(fp)
         return fp
 
