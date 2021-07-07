@@ -50,13 +50,13 @@ def cpu_monitor():
     while(True):
         x=psutil.cpu_percent(interval=1)
         client.publish(local_ip+"/cpu",x)
-        os.system(str(x), " > cpu.txt")
+        os.system(str(x) + " > cpu.txt")
 
 def memory_monitor():
     while(True):
         x = str((psutil.virtual_memory().used/psutil.virtual_memory().total)*100)
         client.publish(local_ip+"/mem", x[0:5])
-        os.system(str(x), " > mem.txt")
+        os.system(str(x) + " > mem.txt")
 
 # The callback for when a PUBLISH message is received from the server.
 #handles change a variable feature

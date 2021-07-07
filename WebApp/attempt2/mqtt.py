@@ -126,13 +126,13 @@ def on_message(client, userdata, msg):
         key = hash[ip]
         global cpu_usage
         cpu_usage[key-1].write(payload)
-        os.system(payload, " > cpu.txt") #debug
+        os.system(payload + " > cpu.txt") #debug
 
     elif(topic == "mem"):
         key = hash[ip]
         global mem_usage
         mem_usage[key-1].write(payload)
-        os.system(payload, " > mem.txt") #debug
+        os.system(payload + " > mem.txt") #debug
 
     elif(topic == "disconnection"):
         message = {
