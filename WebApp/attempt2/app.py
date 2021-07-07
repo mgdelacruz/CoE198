@@ -66,7 +66,7 @@ def performance_monitor():
 if __name__=="__main__":
 
     tmpdir = tempfile.mkdtemp()
-    filename = os.path.join(tmpdir, 'flask-mqtt-fifo')
+    filename = os.path.join(tmpdir, '')
     try:
         os.mkfifo(filename)
     except OSError as e:
