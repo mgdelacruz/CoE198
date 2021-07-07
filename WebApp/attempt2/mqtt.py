@@ -145,6 +145,8 @@ def on_connect(client, userdata, flags, rc):
         signal.signal(signal.SIGINT, signal_handler)
         NUM_NODES = 0
         uptime_threads = []
+        ping_sweep()
+        print("ping sweeped") #debug
         global fps
         f = open("node_IPs.txt", "r")
         for ip in f:
@@ -169,8 +171,6 @@ def on_connect(client, userdata, flags, rc):
             #uptime monitor initialization
 
             print("initializing uptime monitor threads") #debug
-            ping_sweep()
-            print("ping sweeped") #debug
             try:
                 uptime_threads.append(threading.Thread(target = uptime_monitor,args=(IPs[-1],connected_flags[NUM_NODES-1],)))
             except:
