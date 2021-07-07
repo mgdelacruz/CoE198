@@ -218,9 +218,9 @@ def fifo(filename,loop):
 
     tmpdirs.append(tempfile.mkdtemp())
     if loop>0:
-        filenames.append(os.path.join(tmpdirs[-1], filename+str(loop)))
+        filenames.append(os.path.join(tmpdirs[-1] + filename+str(loop)))
     else:
-        filenames.append(os.path.join(tmpdirs[-1], filename))
+        filenames.append(os.path.join(tmpdirs[-1] + filename))
 
     try:
         os.mkfifo(filenames[-1])
@@ -229,7 +229,7 @@ def fifo(filename,loop):
         client.loop_stop()    #Stop loop
         sys.exit()
     else:
-        print("made a fifo file")
+        print("made a fifo file with filename: ", filenames[-1])
         fp = open(filenames[-1], 'w')
         print("opened a fifo file: ", str(fp))
         fps.append(fp)
