@@ -19,7 +19,7 @@ tmpdirs = []                #paths of fifos used for cleanup upon server disconn
 fps =[]                     #file pointers to be closed upon server disconnect
 cpu = []                    #array of file pointers to text file where cpu data for each node is dumped
 mem = []                    #array of file pointers to text file where memory data for each node is dumped
-connected_flags = []        #used for uptime monitoring
+connected_flags = {}        #used for uptime monitoring
 ping_prompt = None          #fifo file that gets prompt to ping devices
 
 def fifo(filename,loop):
@@ -150,12 +150,13 @@ def on_connect(client, userdata, flags, rc):
         f = open("node_IPs.txt", "r")
         for ip in f:
             print("iterating through ips in node_ip.txt") #debug
-            #populate hash table and subscribe
+            #populate hash table, initialize connected flags and subscribe
             global IPs
             global hash
             NUM_NODES = NUM_NODES+1
             IPs.append(ip.rstrip())
             hash.update({IPs[-1] : NUM_NODES})
+            connected_flags.append(0)
             client.subscribe(IPs[-1]+'/+')
 
             #performance monitor initialization
