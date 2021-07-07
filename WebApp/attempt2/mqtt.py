@@ -260,7 +260,7 @@ def on_message(client, userdata, msg):
         print("Change Var Response: ",message) #debug
 
 def on_disconnect(client, userdata, rc):
-    raise(signal.SIGUSR1)
+    os.kill(os.getpid(), signal.SIGUSR1)
 
 def on_log(client, userdata, level, buf):
     print("log: ",buf)
