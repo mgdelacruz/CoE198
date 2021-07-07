@@ -145,7 +145,6 @@ def on_connect(client, userdata, flags, rc):
 
         signal.signal(signal.SIGINT, signal_handler)
         NUM_NODES = 0
-        uptime_threads = []
         global fps
         f = open("node_IPs.txt", "r")
         for ip in f:
@@ -172,12 +171,13 @@ def on_connect(client, userdata, flags, rc):
         f.close()
 
         #uptime monitor initialization
+        uptime_threads = []
         ping_sweep()
         print("ping sweeped") #debug
         print("initializing uptime monitor threads") #debug
         for ip in IPs:
             try:
-                uptime_threads.append(threading.Thread(target = uptime_monitor,args=(ip,connected_flags[hash[ip]],)))
+                uptime_threads.append(threading.Thread(target = uptime_monitor,args=(ip,connected_flags[hash[ip]])))
             except:
                 print ("Error: unable to start uptime thread")
                 client.disconnect() # disconnect
@@ -188,7 +188,7 @@ def on_connect(client, userdata, flags, rc):
         #start threshold adjustment thread
         print("initializing threshold adjustment thread") #debug
         try:
-            change_var_thread = threading.Thread(target = change_var,args=(NUM_NODES,))
+            change_var_thread = threading.Thread(target = change_var,args=(NUM_NODES))
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
