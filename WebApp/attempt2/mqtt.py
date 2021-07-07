@@ -19,6 +19,8 @@ change_var_app = None
 filenames = []
 tmpdirs = []
 fps =[]
+cpu = None #debug
+mem = None #debug
 
 def ping_sweep():
     print("in fcn")
@@ -65,6 +67,11 @@ def on_connect(client, userdata, flags, rc):
         server_to_app = fifo('server_to_app', 0) #creates fifo for server to web app communicaton
 
         #performance monitor initialization and subscribe
+        global cpu
+        global mem
+        cpu = open("cpu.txt", "a")
+        mem = open("mem.txt", "a")
+
         NUM_NODES = 0
         f = open("node_IPs.txt", "r")
         for ip in f:
@@ -126,13 +133,13 @@ def on_message(client, userdata, msg):
         key = hash[ip]
         global cpu_usage
         cpu_usage[key-1].write(payload)
-        os.system(payload + " > cpu.txt") #debug
+        cpu.write(payload) #debug
 
     elif(topic == "mem"):
         key = hash[ip]
         global mem_usage
         mem_usage[key-1].write(payload)
-        os.system(payload + " > mem.txt") #debug
+        mem.write(payload) #debug
 
     elif(topic == "disconnection"):
         message = {
@@ -167,6 +174,10 @@ def Initialise_client_object():
     mqtt.Client.suback_flag=False
 
 def signal_handler(signum, frame):
+    global cpu
+    global mem
+    cpu.close() #debug
+    mem.close() #debug
     for fp in fps:
         fp.close()
     for filename in filenames:

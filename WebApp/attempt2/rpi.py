@@ -13,6 +13,8 @@ import os
 
 current_threshold = 37.5 #variable to be adjusted on prompt
 old_threshold = None
+cpu = None
+mem = None
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -33,6 +35,11 @@ def on_connect(client, userdata, flags, rc):
 
     client.subscribe("change_var")
 
+    global cpu
+    global mem
+    cpu = open("cpu.txt", "a")
+    mem = open("mem.txt", "a")
+
     try:
         cpu_thread = threading.Thread(target = cpu_monitor,args=())
         memory_thread = threading.Thread(target = memory_monitor,args=())
@@ -50,13 +57,13 @@ def cpu_monitor():
     while(True):
         x=psutil.cpu_percent(interval=1)
         client.publish(local_ip+"/cpu",x)
-        os.system(str(x) + " > cpu.txt")
+        cpu.write(str(x)) #debug
 
 def memory_monitor():
     while(True):
         x = str((psutil.virtual_memory().used/psutil.virtual_memory().total)*100)
         client.publish(local_ip+"/mem", x[0:5])
-        os.system(str(x) + " > mem.txt")
+        mem.write(x) #debug
 
 # The callback for when a PUBLISH message is received from the server.
 #handles change a variable feature
@@ -77,6 +84,10 @@ def on_message(client, userdata, msg):
     print("Disconnection: ",message) #debug
 
 def on_disconnect(client, userdata, rc):
+    global cpu
+    global mem
+    cpu.close()
+    mem.close()
     logging.info("disconnecting reason " + str(rc))
     client.connected_flag = False
     client.disconnect_flag = True
