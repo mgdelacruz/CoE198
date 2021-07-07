@@ -34,6 +34,8 @@ def on_connect(client, userdata, flags, rc):
     # reconnect then subscriptions will be renewed.
 
     client.subscribe("change_var")
+    print("subscribed to change_var") #debug
+
 
     global cpu
     global mem

@@ -65,16 +65,20 @@ def on_connect(client, userdata, flags, rc):
         #initialization
         signal.signal(signal.SIGINT, signal_handler)
         server_to_app = fifo('server_to_app', 0) #creates fifo for server to web app communicaton
+        print("init done") #debug
 
         #performance monitor initialization and subscribe
         global cpu
         global mem
         cpu = open("cpu.txt", "a")
         mem = open("mem.txt", "a")
+        print("opened cpu and mem files") #debug
 
         NUM_NODES = 0
         f = open("node_IPs.txt", "r")
         for ip in f:
+            print("iterating through ips in node_ip.txt") #debug
+
             NUM_NODES = NUM_NODES+1
             global IPs
             IPs.append(ip.rstrip())
@@ -89,6 +93,8 @@ def on_connect(client, userdata, flags, rc):
                 "ip":IPs[-1],
                 "num":NUM_NODES
             }
+            print("done iterating through ips in node_ip.txt") #debug
+
             to_write = json.dumps(message)
             server_to_app.write(to_write)
             print("hash table: ",message) #debug
@@ -96,6 +102,8 @@ def on_connect(client, userdata, flags, rc):
         f.close()
 
         #start threshold adjustment thread
+        print("initializing threshold adjustment thread") #debug
+
         global change_var_server
         global change_var_app
         change_var_server = fifo('change_var_server', 0)
@@ -112,6 +120,7 @@ def on_connect(client, userdata, flags, rc):
             change_var_thread.start()
 
         #uptime monitor initialization
+        print("ping sweep") #debug
         ping_sweep()
 
     else:
@@ -120,6 +129,7 @@ def on_connect(client, userdata, flags, rc):
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
+    print("a message was received") #debug
     global server_to_app
     raw_topic=msg.topic,
     payload=msg.payload.decode("utf-8")
@@ -130,18 +140,24 @@ def on_message(client, userdata, msg):
     print(topic)
 
     if(topic == "cpu"):
+        print("recvd cpu message") #debug
+
         key = hash[ip]
         global cpu_usage
         cpu_usage[key-1].write(payload)
         cpu.write(payload) #debug
 
     elif(topic == "mem"):
+        print("recvd mem message") #debug
+
         key = hash[ip]
         global mem_usage
         mem_usage[key-1].write(payload)
         mem.write(payload) #debug
 
     elif(topic == "disconnection"):
+        print("recvd disconnect message") #debug
+
         message = {
                 "ip":ip,
                 "uptime":"DISCONNECTED",
@@ -152,6 +168,8 @@ def on_message(client, userdata, msg):
         print("Disconnection: ",message) #debug
 
     elif(topic == "change_var_response"):
+        print("recvd change var response message") #debug
+
         message = {
                 "ip":ip
         }
@@ -192,6 +210,8 @@ def signal_handler(signum, frame):
 
 def fifo(filename,loop):
 
+    print("making fifo file") #debug
+
     global filenames
     global tmpdirs
     global fps
@@ -216,6 +236,7 @@ def fifo(filename,loop):
 def change_var():
     while (True):
         value = float(change_var_app.read())
+        print("read change var file") #debug
         if value == TypeError:
             change_var_error.write("Invalid Input")
             print("Change Var Error: Invalid Input")
@@ -232,8 +253,8 @@ Initialise_client_object()
 
 #client.connect("127.0.0.1", 1883, 60)     #connect to broker
 client.connect("10.158.56.21", 1883, 60)     #connect to broker
-while not client.connected_flag and not client.bad_connection_flag: #wait in loop
-    print("In wait loop")
+#while not client.connected_flag and not client.bad_connection_flag: #wait in loop
+#    print("In wait loop")
 if client.bad_connection_flag:
     client.loop_stop()    #Stop loop
     sys.exit()
