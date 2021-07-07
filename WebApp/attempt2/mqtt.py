@@ -94,11 +94,13 @@ def uptime_monitor(ip, local_flag):
     uptime_app = fifo('uptime_app', dev_no) #creates fifo for server to web app communicaton
     if(local_flag):
                 message = {
+                        "device no.":hash[ip],
                         "ip":ip,
                         "uptime":"CONNECTED"
                 }
     else:
             message = {
+                "device no.":hash[ip],
                 "ip":ip,
                 "uptime":"DISCONNECTED",
             }
@@ -110,11 +112,13 @@ def uptime_monitor(ip, local_flag):
             local_flag = connected_flags[dev_no-1]
             if(local_flag):
                 message = {
+                        "device no.":hash[ip],
                         "ip":ip,
                         "uptime":"CONNECTED"
                 }
             else:
                 message = {
+                    "device no.":hash[ip],
                     "ip":ip,
                     "uptime":"DISCONNECTED",
                 }
@@ -251,6 +255,7 @@ def on_message(client, userdata, msg):
     elif(topic == "change_var_response"):
         print("recvd change var response message") #debug
         message = {
+                "device no.":hash[ip],
                 "ip":ip
         }
         message.update(json.loads(payload))

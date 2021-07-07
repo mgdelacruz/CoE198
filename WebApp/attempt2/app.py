@@ -13,15 +13,19 @@ logging.basicConfig(
 
 app = Flask(__name__)
 
+#Global Variables
 IPs = []
+hash = {}
+fps = []
+NUM_NODES = None
+
 f = open("node_IPs.txt", "r")
 for ip in f:
+    #populate hash table, initialize connected flags and subscribe
+    NUM_NODES = NUM_NODES+1
     IPs.append(ip.rstrip())
-    NUM_NODES
+    hash.update({IPs[-1] : NUM_NODES})
 f.close()
-
-change_var_server = []      #fifo files from server to app where each device being monitored acks change var
-ping_prompt = None          #fifo file that gets prompt to ping devices
 
 
 @app.route('/')
@@ -40,31 +44,45 @@ def performance_monitor():
     for
     return render_template('perf_monitor.html', devices = devices)
 
-#@app.route('/module/uptime_monitor')
-#def uptime_monitor():
-#    return render_template('uptime_monitor.html')
-
-#@app.route('/module/thresh_adjust', methods=['POST', 'GET'])
-#def change_var():
+@app.route('/module/uptime_monitor')
+def uptime_monitor():
     #makes fifo file that sends the data to the server
-    #tmpdir = tempfile.mkdtemp()
-    #filename = os.path.join(tmpdir, 'change_var_app')
-    #try:
-    #    os.mkfifo(filename)
-    #except OSError as e:
-    #    print ("Failed to create FIFO: %s") % e
-    #else:
-    #    global fifo
-    #    fifo_write = open(filename, 'w')
-#
-#    return render_template('thresh_adjust.html')
+    tmpdir = tempfile.mkdtemp()
+    filename = os.path.join(tmpdir, 'ping_prompt')
+    try:
+        os.mkfifo(filename)
+    except OSError as e:
+        print ("Failed to create FIFO: %s") % e
+    else:
+        global change_var_app
+        ping_prompt = open(filename, 'w')
+    return render_template('uptime_monitor.html')
+
+@app.route('/module/thresh_adjust', methods=['POST', 'GET'])
+def change_var():
+
+    change_var_server = []
+    for i in range(NUM_NODES-1):
+    change_var_server.append(open("change_var_server"+str(i+1),"r"))
+
+    #makes fifo file that sends the data to the server
+    tmpdir = tempfile.mkdtemp()
+    filename = os.path.join(tmpdir, 'change_var_app')
+    try:
+        os.mkfifo(filename)
+    except OSError as e:
+        print ("Failed to create FIFO: %s") % e
+    else:
+        global change_var_app
+        change_var_app = open(filename, 'w')
+
+    return render_template('thresh_adjust.html')
 
 if __name__=="__main__":
 
     app.run(host=os.getenv('IP', '0.0.0.0'),
             port=int(os.getenv('PORT',4444)))
 
-    fifo_write.close()
-    fifo_read.close()
+
     os.remove(filename)
     os.rmdir(tmpdir)
