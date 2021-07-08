@@ -65,7 +65,7 @@ def on_connect(client, userdata, flags, rc):
 
 def cpu_monitor():
     while(True):
-        x=psutil.cpu_percent(interval=1)
+        x=psutil.cpu_percent(interval=1,percpu=True)
         client.publish(local_ip+"/cpu",str(x))
         print("published cpu")
         cpu.write(str(x)) #debug
