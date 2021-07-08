@@ -26,7 +26,6 @@ def get_ip_address(ifname):
 local_ip = get_ip_address('eth0')
 
 def signal_handler(signum, frame):
-    global client
     client.connected_flag = False
     client.disconnect_flag = True
     client.disconnect()
