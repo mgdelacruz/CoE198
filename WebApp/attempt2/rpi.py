@@ -44,6 +44,8 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("change_var")
     print("subscribed to change_var") #debug
     client.publish(local_ip+"/status", payload = 'CONNECTED', qos = 0, retain = True)
+    client.publish(local_ip+'/cpu_flag',payload = 'LOW', qos = 0, retain = True)
+    client.publish(local_ip+'/mem_flag',payload = 'LOW', qos = 0, retain = True)
 
     global cpu
     global mem
@@ -68,12 +70,16 @@ def cpu_monitor():
         x=psutil.cpu_percent(interval=1,percpu=True)
         client.publish(local_ip+"/cpu",str(x))
         print("published cpu")
+        if x > 90:
+            client.publish(local_ip+'/cpu_flag',payload = 'HIGH', qos = 0, retain = True)
         cpu.write(str(x)) #debug
 
 def memory_monitor():
     while(True):
         x = str((psutil.virtual_memory().used/psutil.virtual_memory().total)*100)
         client.publish(local_ip+"/mem", x[0:5])
+        if x > 90:
+            client.publish(local_ip+'/mem_flag',payload = 'HIGH', qos = 0, retain = True)
         mem.write(x) #debug
 
 # The callback for when a PUBLISH message is received from the server.

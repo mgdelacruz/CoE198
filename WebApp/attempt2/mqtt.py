@@ -10,35 +10,15 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from queue import Queue
 
+app = Flask(__name__)
+
 #global variables
-current_threshold = 37.5    #initial threshold value on pi
-old_threshold = None
 hash={}                     #stores ip to device no. mapping
-filenames = []              #list of filenames of each fifo used for cleanup upon server disconnect
 connected_flags = []        #used for uptime monitoring
 ping_prompt = None          #fifo file that gets prompt to ping devices
-#client = None               #global client object
 nodes = []                  #array of Node objects
 change = False              #flag for changes to database
-
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# db_path = os.path.join(BASE_DIR, "catifs.db")
-# app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# db = SQLAlchemy(app)
-# class database(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     device = db.Column(db.String(200), nullable=False)
-#     ip = db.Column(db.String(15), primary_key=True)
-#     cpu = db.Column(db.Float, nullable=True)
-#     memory = db.Column(db.Float, nullable=True)
-#     status = db.Column(db.String(15), nullable = False)
-#     last_disconnect = db.Column(db.DateTime)
-#     current_threshold = (db.Float, nullable=False)
-#     def __repr__(self):
-#         return '<Node %r>' %self.id
-
+client = None               #global Client
 class Node ():
     cnt = 0
     def __init__ (self, ip):
@@ -48,19 +28,18 @@ class Node ():
         self.ip = ip
         self.cpu_file = None
         self.mem_file = None
+        self.cpu_flag = ''
+        self.mem_flag = ''
         self.status = ''
         self.ping = ''
         self.current_threshold = '37.5'
         self.old_threshold = ''
-        self.uptime_thread = None
     def __del__(self):
         self.cpu_file.close()
         self.mem_file.close()
 
 def signal_handler(signum, frame):
     global client
-    for filename in filenames:
-        os.remove(filename)
     client.connected_flag = False
     client.disconnect_flag = True
     client.loop_stop()    #Stop loop
@@ -79,25 +58,6 @@ def ping_sweep():
             nodes[i].ping = 'CONNECTED'
         else:
             nodes[i].ping = 'DISCONNECTED'
-
-# def uptime_monitor(node, local_flag):
-#     while(True):
-#         key = hash[node.ip]-1
-#         if local_flag != nodes[key].disconnected:
-#             local_flag = nodes[key].disconnected
-#             if(not local_flag):
-#                 message = {
-#                         "device no.":node.dev_no,
-#                         "ip":node.ip,
-#                         "uptime":"CONNECTED"
-#                 }
-#             else:
-#                 message = {
-#                     "device no.":node.dev_no,
-#                     "ip":node.ip,
-#                     "uptime":"DISCONNECTED",
-#                 }
-#             print(message)
 
 def change_var():
     while (True):
@@ -138,20 +98,6 @@ def on_connect(client, userdata, flags, rc):
 
         print("done iterating through ips in node_ip.txt") #debug
         f.close()
-
-        #uptime monitor initialization
-        # ping_sweep()
-        # print("ping sweeped") #debug
-        # print("initializing uptime monitor threads") #debug
-        # for i in range(Node.cnt-1):
-        #     try:
-        #         nodes[i].uptime_thread = threading.Thread(target = uptime_monitor,args=(nodes[i],nodes[i].disconnected))
-        #     except:
-        #         print ("Error: unable to start uptime thread")
-        #         client.disconnect() # disconnect
-        #     else:
-        #         nodes[i].uptime_thread.daemon = True
-        #         nodes[i].uptime_thread.start()
 
         #start threshold adjustment thread
         print("initializing threshold adjustment thread") #debug
@@ -245,6 +191,52 @@ def on_status(client, userdata, msg):
     print("ip: ", ip) #debug
     print("Status: ",payload) #debug
 
+def on_cpu_flag(client, userdata, msg):
+    q = Queue()
+    q.put(msg)
+    while not q.empty():
+        message = q.get()
+
+    payload=message.payload.decode("utf-8")
+    print(payload)
+    raw_topic=str(msg.topic)
+    print('raw_topic: ', raw_topic)
+    temp = raw_topic.split('/', 1)
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
+    print(ip)
+    print(topic)
+
+    print("recvd disconnect message") #debug
+    key = hash[ip]-1
+    nodes[key].cpu_flag = payload
+    print("ip: ", ip) #debug
+    print("CPU_Flag: ",payload) #debug
+
+def on_mem_flag(client, userdata, msg):
+    q = Queue()
+    q.put(msg)
+    while not q.empty():
+        message = q.get()
+
+    payload=message.payload.decode("utf-8")
+    print(payload)
+    raw_topic=str(msg.topic)
+    print('raw_topic: ', raw_topic)
+    temp = raw_topic.split('/', 1)
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
+    print(ip)
+    print(topic)
+
+    print("recvd disconnect message") #debug
+    key = hash[ip]-1
+    nodes[key].mem_flag = payload
+    print("ip: ", ip) #debug
+    print("Mem_Flag: ",payload) #debug
+
 def on_change_var_res(client, userdata, msg):
     q = Queue()
     q.put(msg)
@@ -285,60 +277,43 @@ def Initialise_client_object():
 
 #Flask Web Application
 
-# @app.route('/')
-# def homepage():
-#     return render_template('homepage.html')
+@app.route('/')
+def homepage():
+    return render_template('homepage.html')
 
-# @app.route('/module')
-# def mgmt_module():
-#     return render_template('module.html')
+@app.route('/module')
+def mgmt_module():
+    return render_template('module.html')
 
-# @app.route('/module/perf_monitor')
-# def performance_monitor_module():
+@app.route('/module/perf_monitor', methods=['POST', 'GET'])
+def performance_monitor_module(nodes):
+    return render_template('perf_monitor.html', nodes = nodes)
 
-#     return render_template('perf_monitor.html', devices = devices)
+@app.route('/module/uptime_monitor')
+def uptime_monitor_module(nodes):
+    return render_template('uptime_monitor.html', nodes = nodes)
 
-# @app.route('/module/uptime_monitor')
-# def uptime_monitor_module():
-#     return render_template('uptime_monitor.html', database)
+@app.route('/module/thresh_adjust', methods=['POST', 'GET'])
+def change_var_module():
+    return render_template('thresh_adjust.html')
 
-# @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
-# def change_var_module():
+if __name__ == '__main__':
+    #Bind callbacks
+    client = mqtt.Client(client_id="host", clean_session=False)
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+    #client.on_log=on_log
+    client.message_callback_add('+/cpu',on_cpu)
+    client.message_callback_add('+/mem',on_mem)
+    client.message_callback_add('+/status',on_status)
+    client.message_callback_add('+/change_var_response',on_change_var_res)
+    Initialise_client_object()
 
-#     change_var_server = []
-#     for i in range(NUM_NODES-1):
-#     change_var_server.append(open("change_var_server"+str(i+1),"r"))
-
-#     #makes fifo file that sends the data to the server
-#     tmpdir = tempfile.mkdtemp()
-#     filename = os.path.join(tmpdir, 'change_var_app')
-#     try:
-#         os.mkfifo(filename)
-#     except OSError as e:
-#         print ("Failed to create FIFO: %s") % e
-#     else:
-#         global change_var_app
-#         change_var_app = open(filename, 'w')
-
-#     return render_template('thresh_adjust.html')
-
-#Bind callbacks
-client = mqtt.Client(client_id="host", clean_session=False)
-client.on_connect = on_connect
-client.on_disconnect = on_disconnect
-#client.on_log=on_log
-client.message_callback_add('+/cpu',on_cpu)
-client.message_callback_add('+/mem',on_mem)
-client.message_callback_add('+/status',on_status)
-client.message_callback_add('+/change_var_response',on_change_var_res)
-Initialise_client_object()
-
-#connect to a broker
-client.connect("10.158.56.21", 1883, 60)
-if client.bad_connection_flag:
-    client.loop_stop()    #Stop loop
-    sys.exit()
-client.loop_forever()
-
+    #connect to a broker
+    client.connect("10.158.56.21", 1883, 60)
+    if client.bad_connection_flag:
+        client.loop_stop()    #Stop loop
+        sys.exit()
+    client.loop_start()
     #flask web app
-    #app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=4444)

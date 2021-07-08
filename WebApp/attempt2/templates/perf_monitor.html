@@ -17,13 +17,13 @@
             <th>CPU</th>
             <th>MEMORY</th>
         </tr>
-        {% for node in devices %}
+        {% for node in nodes %}
         <tr>
             <td>{{ node.device }}</td>
             <td>{{ node.id}}</td>
             <td>{{ node.ip}}</td>
-            <td>{{ node.cpu}}</td>
-            <td>{{ node.memory}}</td>
+            <td>{{ node.cpu_flag}}</td>
+            <td>{{ node.memory_flag}}</td>
         </tr>
         {% endfor %}
     </table>
