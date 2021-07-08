@@ -50,6 +50,7 @@ class Node ():
         self.cpu_file = None
         self.mem_file = None
         self.status = ''
+        self.ping = ''
         self.current_threshold = '37.5'
         self.old_threshold = ''
         self.uptime_thread = None
@@ -76,9 +77,9 @@ def ping_sweep():
         response = os.system("sudo ping -c 1 " + nodes[i].ip + " > dump.txt")
         #check the response:
         if (not response):
-            nodes[i].disconnected = False
+            nodes[i].ping = 'CONNECTED'
         else:
-            nodes[i].disconnected = True
+            nodes[i].ping = 'DISCONNECTED'
 
 # def uptime_monitor(node, local_flag):
 #     while(True):
