@@ -43,7 +43,7 @@ def on_connect(client, userdata, flags, rc):
     signal.signal(signal.SIGINT, signal_handler) #for disconnect upon exit
     client.subscribe("change_var")
     print("subscribed to change_var") #debug
-
+    client.publish(local_ip+"/status", payload = 'CONNECTED', qos = 0, retain = True)
 
     global cpu
     global mem
@@ -110,7 +110,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 client.on_disconnect = on_disconnect
 client.connect("10.158.56.21", 1883, 60)
-client.will_set(local_ip+"/disconnect", str(datetime.utcnow))
+client.will_set(local_ip+"/status", payload = 'DISCONNECTED', qos = 0, retain = True)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.

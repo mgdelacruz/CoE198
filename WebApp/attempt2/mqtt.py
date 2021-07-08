@@ -49,8 +49,7 @@ class Node ():
         self.ip = ip
         self.cpu_file = None
         self.mem_file = None
-        self.disconnected = True
-        self.last_disconnect = ''
+        self.status = ''
         self.current_threshold = '37.5'
         self.old_threshold = ''
         self.uptime_thread = None
@@ -81,24 +80,24 @@ def ping_sweep():
         else:
             nodes[i].disconnected = True
 
-def uptime_monitor(node, local_flag):
-    while(True):
-        key = hash[node.ip]-1
-        if local_flag != nodes[key].disconnected:
-            local_flag = nodes[key].disconnected
-            if(not local_flag):
-                message = {
-                        "device no.":node.dev_no,
-                        "ip":node.ip,
-                        "uptime":"CONNECTED"
-                }
-            else:
-                message = {
-                    "device no.":node.dev_no,
-                    "ip":node.ip,
-                    "uptime":"DISCONNECTED",
-                }
-            print(message)
+# def uptime_monitor(node, local_flag):
+#     while(True):
+#         key = hash[node.ip]-1
+#         if local_flag != nodes[key].disconnected:
+#             local_flag = nodes[key].disconnected
+#             if(not local_flag):
+#                 message = {
+#                         "device no.":node.dev_no,
+#                         "ip":node.ip,
+#                         "uptime":"CONNECTED"
+#                 }
+#             else:
+#                 message = {
+#                     "device no.":node.dev_no,
+#                     "ip":node.ip,
+#                     "uptime":"DISCONNECTED",
+#                 }
+#             print(message)
 
 def change_var():
     while (True):
@@ -141,18 +140,18 @@ def on_connect(client, userdata, flags, rc):
         f.close()
 
         #uptime monitor initialization
-        ping_sweep()
-        print("ping sweeped") #debug
-        print("initializing uptime monitor threads") #debug
-        for i in range(Node.cnt-1):
-            try:
-                nodes[i].uptime_thread = threading.Thread(target = uptime_monitor,args=(nodes[i],nodes[i].disconnected))
-            except:
-                print ("Error: unable to start uptime thread")
-                client.disconnect() # disconnect
-            else:
-                nodes[i].uptime_thread.daemon = True
-                nodes[i].uptime_thread.start()
+        # ping_sweep()
+        # print("ping sweeped") #debug
+        # print("initializing uptime monitor threads") #debug
+        # for i in range(Node.cnt-1):
+        #     try:
+        #         nodes[i].uptime_thread = threading.Thread(target = uptime_monitor,args=(nodes[i],nodes[i].disconnected))
+        #     except:
+        #         print ("Error: unable to start uptime thread")
+        #         client.disconnect() # disconnect
+        #     else:
+        #         nodes[i].uptime_thread.daemon = True
+        #         nodes[i].uptime_thread.start()
 
         #start threshold adjustment thread
         print("initializing threshold adjustment thread") #debug
@@ -223,7 +222,7 @@ def on_mem(client, userdata, msg):
     key = hash[ip]-1
     nodes[key].mem_file.write(payload+'\n') #debug
 
-def on_dc(client, userdata, msg):
+def on_status(client, userdata, msg):
     q = Queue()
     q.put(msg)
     while not q.empty():
@@ -242,10 +241,9 @@ def on_dc(client, userdata, msg):
 
     print("recvd disconnect message") #debug
     key = hash[ip]-1
-    nodes[key].disconnected = 1
-    nodes[key].last_disconnect = payload
+    nodes[key].status = payload
     print("ip: ", ip) #debug
-    print("Last Disconnection: ",payload) #debug
+    print("Status: ",payload) #debug
 
 def on_change_var_res(client, userdata, msg):
     q = Queue()
@@ -331,7 +329,7 @@ client.on_disconnect = on_disconnect
 #client.on_log=on_log
 client.message_callback_add('+/cpu',on_cpu)
 client.message_callback_add('+/mem',on_mem)
-client.message_callback_add('+/disconnect',on_dc)
+client.message_callback_add('+/status',on_status)
 client.message_callback_add('+/change_var_response',on_change_var_res)
 Initialise_client_object()
 
