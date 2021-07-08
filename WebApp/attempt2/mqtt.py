@@ -102,13 +102,7 @@ def uptime_monitor(node, local_flag):
                 }
             print(message)
 
-def change_var(NUM_NODES):
-    global change_var_server
-    global change_var_app
-    global fps
-    change_var_app = open('change_var_app', 'r')
-    fps.append(change_var_app)
-
+def change_var():
     while (True):
         value = input("Enter a variable: ")
         print("changing variables to " + value) #debug
@@ -201,7 +195,7 @@ def on_cpu(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=msg.topic[0]
-    print('msg.topic[0]: ', str(msg.topic[0]))
+    print('msg.topic: ', str(msg.topic))
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
     print('temp: ',temp)
@@ -222,7 +216,7 @@ def on_mem(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=msg.topic[0]
-    print('msg.topic[0]: ', str(msg.topic[0]))
+    print('msg.topic: ', str(msg.topic))
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
     print('temp: ',temp)
@@ -243,7 +237,7 @@ def on_dc(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=msg.topic[0]
-    print('msg.topic[0]: ', str(msg.topic[0]))
+    print('msg.topic: ', str(msg.topic))
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
     print('temp: ',temp)
@@ -268,7 +262,7 @@ def on_change_var_res(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=msg.topic[0]
-    print('msg.topic[0]: ', str(msg.topic[0]))
+    print('msg.topic: ', str(msg.topic))
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
     print('temp: ',temp)
