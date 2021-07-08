@@ -15,7 +15,6 @@ current_threshold = 37.5    #initial threshold value on pi
 old_threshold = None
 hash={}                     #stores ip to device no. mapping
 filenames = []              #list of filenames of each fifo used for cleanup upon server disconnect
-fps =[]                     #file pointers to be closed upon server disconnect
 connected_flags = []        #used for uptime monitoring
 ping_prompt = None          #fifo file that gets prompt to ping devices
 #client = None               #global client object
@@ -60,8 +59,6 @@ class Node ():
 
 def signal_handler(signum, frame):
     global client
-    for fp in fps:
-        fp.close()
     for filename in filenames:
         os.remove(filename)
     client.connected_flag = False
@@ -169,9 +166,6 @@ def on_connect(client, userdata, flags, rc):
 
         #start ping prompt thread
         print("initializing ping prompt thread") #debug
-        global ping_prompt
-        ping_prompt = open("ping_prompt","r")
-        fps.append(ping_prompt)
         try:
             ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
         except:
@@ -191,17 +185,17 @@ def on_cpu(client, userdata, msg):
     q.put(msg)
     while not q.empty():
         message = q.get()
-    print("queue: ",message)#debug
+    #print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
     raw_topic=str(msg.topic)
-    print('raw_topic: ', raw_topic)
+    #print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
-    print('temp: ',temp)
+    #print('temp: ',temp)
     ip = temp[0]
     topic = temp[1]
-    print(ip)
-    print(topic)
+    #print(ip)
+    #print(topic)
 
     key = hash[ip]-1
     nodes[key].cpu_file.write(payload) #debug
@@ -211,7 +205,7 @@ def on_mem(client, userdata, msg):
     q.put(msg)
     while not q.empty():
         message = q.get()
-    print("queue: ",message)#debug
+    #print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
     raw_topic=str(msg.topic)
