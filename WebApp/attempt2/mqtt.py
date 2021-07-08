@@ -201,6 +201,7 @@ def on_cpu(client, userdata, msg):
 
     key = hash[ip]-1
     nodes[key].cpu_file.write(payload+'\n') #debug
+    print('wrote to cpu file')
 
 def on_mem(client, userdata, msg):
     q = Queue()

@@ -59,6 +59,7 @@ def cpu_monitor():
     while(True):
         x=psutil.cpu_percent(interval=1)
         client.publish(local_ip+"/cpu",x)
+        print("published cpu")
         cpu.write(str(x)) #debug
 
 def memory_monitor():
@@ -83,7 +84,7 @@ def on_message(client, userdata, msg):
     }
     to_pub = json.dumps(message)
     client.publish(local_ip+"/change_var_response", to_pub)
-    print("Disconnection: ",message) #debug
+    print("Change var: ",message) #debug
 
 def on_disconnect(client, userdata, rc):
     global cpu
