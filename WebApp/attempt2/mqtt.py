@@ -17,7 +17,7 @@ filenames = []              #list of filenames of each fifo used for cleanup upo
 fps =[]                     #file pointers to be closed upon server disconnect
 connected_flags = []        #used for uptime monitoring
 ping_prompt = None          #fifo file that gets prompt to ping devices
-client = None               #global client object
+#client = None               #global client object
 nodes = []                  #array of Node objects
 change = False              #flag for changes to database
 
@@ -309,22 +309,20 @@ def Initialise_client_object():
 
 #     return render_template('thresh_adjust.html')
 
-if __name__ == '__main__':
+#Bind callbacks
+client = mqtt.Client(client_id="host", clean_session=False)
+client.on_connect = on_connect
+client.on_message = on_message
+client.on_disconnect = on_disconnect
+client.on_log=on_log
+Initialise_client_object()
 
-    #Bind callbacks
-    client = mqtt.Client(client_id="host", clean_session=False)
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.on_disconnect = on_disconnect
-    client.on_log=on_log
-    Initialise_client_object()
-
-    #connect to a broker
-    client.connect("10.158.56.21", 1883, 60)
-    if client.bad_connection_flag:
-        client.loop_stop()    #Stop loop
-        sys.exit()
-    client.loop_start()
+#connect to a broker
+client.connect("10.158.56.21", 1883, 60)
+if client.bad_connection_flag:
+    client.loop_stop()    #Stop loop
+    sys.exit()
+client.loop_forever()
 
     #flask web app
     #app.run(host='0.0.0.0', port=port)
