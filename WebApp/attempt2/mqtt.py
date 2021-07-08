@@ -168,7 +168,6 @@ def on_connect(client, userdata, flags, rc):
         f.close()
 
         #uptime monitor initialization
-        uptime_threads = []
         ping_sweep()
         print("ping sweeped") #debug
         print("initializing uptime monitor threads") #debug
@@ -179,8 +178,8 @@ def on_connect(client, userdata, flags, rc):
                 print ("Error: unable to start uptime thread")
                 client.disconnect() # disconnect
             else:
-                uptime_threads[-1].daemon = True
-                uptime_threads[-1].start()
+                nodes[i].uptime_thread.daemon = True
+                nodes[i].uptime_thread.start()
 
         #start threshold adjustment thread
         print("initializing threshold adjustment thread") #debug
