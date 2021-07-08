@@ -79,8 +79,6 @@ def on_connect(client, userdata, flags, rc):
     if rc==0:
         client.connected_flag = True
         print("connected OK Returned code=",rc)#debug
-
-        signal.signal(signal.SIGINT, signal_handler) #for cleanup upon exit
         #client.subscribe("self")
         f = open("node_IPs.txt", "r")
         for ip in f:
@@ -298,6 +296,8 @@ def change_var_module():
     return render_template('thresh_adjust.html')
 
 if __name__ == '__main__':
+
+    signal.signal(signal.SIGINT, signal_handler) #for cleanup upon exit
     #Bind callbacks
     client = mqtt.Client(client_id="host", clean_session=False)
     client.on_connect = on_connect
