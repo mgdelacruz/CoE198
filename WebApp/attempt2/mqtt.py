@@ -40,7 +40,7 @@ change = False              #flag for changes to database
 #         return '<Node %r>' %self.id
 
 class Node ():
-    node_cnt = 0
+    cnt = 0
     def __init__ (self, ip):
         Node.cnt += 1
         self.device = "Raspberry Pi"
@@ -56,7 +56,6 @@ class Node ():
     def __del__(self):
         self.cpu_file.close()
         self.mem_file.close()
-        os.remove()
 
 def signal_handler(signum, frame):
     global client
