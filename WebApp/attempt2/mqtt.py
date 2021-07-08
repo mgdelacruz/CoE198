@@ -83,42 +83,23 @@ def ping_sweep():
         else:
             nodes[i].disconnected = True
 
-def uptime_monitor(ip, local_flag):
-    global uptime_app
-    dev_no = hash[ip]
-    if(not local_flag):
-                message = {
-                        "device no.":hash[ip],
-                        "ip":ip,
-                        "uptime":"CONNECTED"
-                }
-    else:
-            message = {
-                "device no.":hash[ip],
-                "ip":ip,
-                "uptime":"DISCONNECTED",
-            }
-    to_write = json.dumps(message)
-    #uptime_app.write(to_write)
-    print(message)
-
+def uptime_monitor(node, local_flag):
     while(True):
-        if local_flag != connected_flags[dev_no-1]:
-            local_flag = connected_flags[dev_no-1]
+        key = hash[node.ip]-1
+        if local_flag != nodes[key].disconnected:
+            local_flag = nodes[key].disconnected
             if(not local_flag):
                 message = {
-                        "device no.":hash[ip],
-                        "ip":ip,
+                        "device no.":node.dev_no,
+                        "ip":node.ip,
                         "uptime":"CONNECTED"
                 }
             else:
                 message = {
-                    "device no.":hash[ip],
-                    "ip":ip,
+                    "device no.":node.dev_no,
+                    "ip":node.ip,
                     "uptime":"DISCONNECTED",
                 }
-            to_write = json.dumps(message)
-            #uptime_app.write(to_write)
             print(message)
 
 def change_var(NUM_NODES):
@@ -156,7 +137,7 @@ def on_connect(client, userdata, flags, rc):
             #populate hash table, initialize connected flags and subscribe to node topics
             global hash
             nodes.append(Node(ip.rstrip()))
-            hash.update({nodes[-1] : Node.cnt})
+            hash.update({nodes[-1].ip : Node.cnt})
             client.subscribe(nodes[-1].ip+'/+')
 
             #performance monitor initialization
@@ -173,7 +154,7 @@ def on_connect(client, userdata, flags, rc):
         print("initializing uptime monitor threads") #debug
         for i in range(Node.cnt-1):
             try:
-                nodes[i].uptime_thread = threading.Thread(target = uptime_monitor,args=(nodes[i].ip,nodes[i].disconnected))
+                nodes[i].uptime_thread = threading.Thread(target = uptime_monitor,args=(nodes[i],nodes[i].disconnected))
             except:
                 print ("Error: unable to start uptime thread")
                 client.disconnect() # disconnect
