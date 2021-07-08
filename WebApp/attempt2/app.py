@@ -27,7 +27,6 @@ for ip in f:
     hash.update({IPs[-1] : NUM_NODES})
 f.close()
 
-
 @app.route('/')
 def homepage():
 

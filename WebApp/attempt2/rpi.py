@@ -101,7 +101,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 client.on_disconnect = on_disconnect
 client.connect("10.158.56.21", 1883, 60)
-client.will_set(local_ip+"/disconnect", "socket error")
+client.will_set(local_ip+"/disconnect", str(datetime.utcnow))
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.

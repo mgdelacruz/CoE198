@@ -1,71 +1,76 @@
 import paho.mqtt.client as mqtt
 import os, tempfile
 import sys
-import time
 import logging
 import signal
-#import threading
-import multiprocessing
+import threading
 import json
+from flask import Flask, render_template, url_for, request, redirect
+from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 
 #global variables
 current_threshold = 37.5    #initial threshold value on pi
 old_threshold = None
 hash={}                     #stores ip to device no. mapping
-IPs = []                    #stores list of ip addresses read from a file
-change_var_server = []      #fifo files from server to app where each device being monitored acks change var
-change_var_app = None       #fifo from app to server where app communicates value to change var
 filenames = []              #list of filenames of each fifo used for cleanup upon server disconnect
-tmpdirs = []                #paths of fifos used for cleanup upon server disconnect
 fps =[]                     #file pointers to be closed upon server disconnect
-cpu = []                    #array of file pointers to text file where cpu data for each node is dumped
-mem = []                    #array of file pointers to text file where memory data for each node is dumped
 connected_flags = []        #used for uptime monitoring
 ping_prompt = None          #fifo file that gets prompt to ping devices
+client = None               #global client object
+nodes = []                  #array of Node objects
+change = False              #flag for changes to database
 
-def fifo(filename,loop):
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# db_path = os.path.join(BASE_DIR, "catifs.db")
+# app = Flask(__name__)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# db = SQLAlchemy(app)
+# class database(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     device = db.Column(db.String(200), nullable=False)
+#     ip = db.Column(db.String(15), primary_key=True)
+#     cpu = db.Column(db.Float, nullable=True)
+#     memory = db.Column(db.Float, nullable=True)
+#     status = db.Column(db.String(15), nullable = False)
+#     last_disconnect = db.Column(db.DateTime)
+#     current_threshold = (db.Float, nullable=False)
+#     def __repr__(self):
+#         return '<Node %r>' %self.id
 
-    print("making fifo file") #debug
-
-    global filenames
-    global tmpdirs
-    global fps
-
-    tmpdirs.append(tempfile.mkdtemp())
-    if loop>0:
-        filenames.append(os.path.join(tmpdirs[-1], filename+str(loop)))
-    else:
-        filenames.append(os.path.join(tmpdirs[-1], filename))
-
-    try:
-        os.mkfifo(filenames[-1])
-    except OSError as e:
-        print ("Failed to create FIFO: %s") % e
-        client.loop_stop()    #Stop loop
-        sys.exit()
-    else:
-        print("made a fifo file with filename: ", filenames[-1])
-        fp = open(filenames[-1], 'w')
-        print("opened a fifo file: ", str(fp))
-        fps.append(fp)
-        return fp
+class Node ():
+    node_cnt = 0
+    def __init__ (self, ip):
+        Node.cnt += 1
+        self.device = "Raspberry Pi"
+        self.dev_no = Node.cnt
+        self.ip = ip
+        self.cpu_file = None
+        self.mem_file = None
+        self.disconnected = True
+        self.last_disconnect = ''
+        self.current_threshold = '37.5'
+        self.old_threshold = ''
+        self.uptime_thread = None
+    def __del__(self):
+        self.cpu_file.close()
+        self.mem_file.close()
+        os.remove()
 
 def signal_handler(signum, frame):
-    global cpu
-    global mem
-    cpu.close() #debug
-    mem.close() #debug
+    global client
     for fp in fps:
         fp.close()
     for filename in filenames:
         os.remove(filename)
-    for tmpdir in tmpdirs:
-        os.rmdir(tmpdir)
     logging.info("disconnecting reason " + str(rc))
     client.connected_flag = False
     client.disconnect_flag = True
     client.loop_stop()    #Stop loop
     sys.exit()
+
+#MQTT Host Client Code:
 
 def ping_sweep():
     print("in fcn")
@@ -77,23 +82,14 @@ def ping_sweep():
         print("ip: " + ip + " dev_no: "+ str(dev_no))
         #check the response:
         if (not response):
-            connected_flags[dev_no-1] = 1
+            nodes[hash[ip]-1].disconnected = False
         else:
-            connected_flags[dev_no-1] = 0
-
-def ping_prompt_loop():
-    global ping_prompt
-    while(True):
-        prompt = ping_prompt.read(1)
-        if prompt:
-            ping_sweep()
-
+            nodes[hash[ip]-1].disconnected = True
 
 def uptime_monitor(ip, local_flag):
     global uptime_app
     dev_no = hash[ip]
-    uptime_app = fifo('uptime_app', dev_no) #creates fifo for server to web app communicaton
-    if(local_flag):
+    if(not local_flag):
                 message = {
                         "device no.":hash[ip],
                         "ip":ip,
@@ -106,12 +102,13 @@ def uptime_monitor(ip, local_flag):
                 "uptime":"DISCONNECTED",
             }
     to_write = json.dumps(message)
-    uptime_app.write(to_write)
+    #uptime_app.write(to_write)
+    print(message)
 
     while(True):
         if local_flag != connected_flags[dev_no-1]:
             local_flag = connected_flags[dev_no-1]
-            if(local_flag):
+            if(not local_flag):
                 message = {
                         "device no.":hash[ip],
                         "ip":ip,
@@ -124,7 +121,8 @@ def uptime_monitor(ip, local_flag):
                     "uptime":"DISCONNECTED",
                 }
             to_write = json.dumps(message)
-            uptime_app.write(to_write)
+            #uptime_app.write(to_write)
+            print(message)
 
 def change_var(NUM_NODES):
     global change_var_server
@@ -132,13 +130,18 @@ def change_var(NUM_NODES):
     global fps
     change_var_app = open('change_var_app', 'r')
     fps.append(change_var_app)
-    for i in range(NUM_NODES-1):
-        change_var_server.append(fifo('change_var_server', i+1))
+
     while (True):
-        value = float(change_var_app.read(4))
-        print("read change var file") #debug
+        value = input("Enter a variable: ")
+        print("changing variables to " + value) #debug
         client.publish("change_var", value)
 
+def ping_prompt_loop():
+    global ping_prompt
+    while(True):
+        prompt = input("Ping sweep? y/n:")
+        if prompt == 'y':
+            ping_sweep()
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -146,30 +149,23 @@ def on_connect(client, userdata, flags, rc):
     #global server_to_app
     if rc==0:
         client.connected_flag = True
-        print("connected OK Returned code=",rc)
+        print("connected OK Returned code=",rc)#debug
 
-        signal.signal(signal.SIGINT, signal_handler)
-        NUM_NODES = 0
-        global fps
+        signal.signal(signal.SIGINT, signal_handler) #for cleanup upon exit
+        #client.subscribe("self")
+
         f = open("node_IPs.txt", "r")
         for ip in f:
             print("iterating through ips in node_ip.txt") #debug
-            #populate hash table, initialize connected flags and subscribe
-            global IPs
+            #populate hash table, initialize connected flags and subscribe to node topics
             global hash
-            NUM_NODES = NUM_NODES+1
-            IPs.append(ip.rstrip())
-            hash.update({IPs[-1] : NUM_NODES})
-            connected_flags.append(0)
-            client.subscribe(IPs[-1]+'/+')
+            nodes.append(Node(ip.rstrip()))
+            hash.update({nodes[-1] : Node.cnt})
+            client.subscribe(nodes[-1].ip+'/+')
 
             #performance monitor initialization
-            global cpu
-            global mem
-            cpu.append(open("cpu"+str(NUM_NODES)+".txt", "a"))
-            mem.append(open("mem"+str(NUM_NODES)+".txt", "a"))
-            fps.append(cpu[-1])
-            fps.append(mem[-1])
+            nodes[-1].cpu_file = open("cpu"+str(Node.cnt)+".txt", "a")
+            nodes[-1].mem_file = open("mem"+str(Node.cnt)+".txt", "a")
             print("opened cpu and mem files") #debug
 
         print("done iterating through ips in node_ip.txt") #debug
@@ -180,9 +176,9 @@ def on_connect(client, userdata, flags, rc):
         ping_sweep()
         print("ping sweeped") #debug
         print("initializing uptime monitor threads") #debug
-        for ip in IPs:
+        for i in range(Node.cnt-1):
             try:
-                uptime_threads.append(multiprocessing.Process(target = uptime_monitor,args=(ip,connected_flags[hash[ip]])))
+                nodes[i].uptime_thread = threading.Thread(target = uptime_monitor,args=(nodes[i].ip,nodes[i].disconnected)))
             except:
                 print ("Error: unable to start uptime thread")
                 client.disconnect() # disconnect
@@ -193,7 +189,7 @@ def on_connect(client, userdata, flags, rc):
         #start threshold adjustment thread
         print("initializing threshold adjustment thread") #debug
         try:
-            change_var_thread = multiprocessing.Process(target = change_var,args=NUM_NODES)
+            change_var_thread = threading.Thread(target = change_var,args=Node.cnt)
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
@@ -207,7 +203,7 @@ def on_connect(client, userdata, flags, rc):
         ping_prompt = open("ping_prompt","r")
         fps.append(ping_prompt)
         try:
-            ping_prompt_thread = multiprocessing.Process(target = ping_prompt_loop,args=())
+            ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
@@ -232,38 +228,36 @@ def on_message(client, userdata, msg):
     print(topic)
 
     if(topic == "cpu"):
-        print("recvd cpu message") #debug
 
-        key = hash[ip]
-        global cpu_usage
+        key = hash[ip]-1
+        #global cpu_usage
         #cpu_usage[key-1].write(payload)
-        cpu[key-1].write(payload) #debug
+        nodes[key].cpu_file.write(payload) #debug
 
     elif(topic == "mem"):
-        print("recvd mem message") #debug
 
-        key = hash[ip]
-        global mem_usage
+        key = hash[ip]-1
+        #global mem_usage
         #mem_usage[key-1].write(payload)
-        mem.write(payload) #debug
+        nodes[key].mem_file.write(payload) #debug
 
     elif(topic == "disconnection"):
         print("recvd disconnect message") #debug
-        global connected_flags
-        connected_flags[hash[ip]] = 0
-        print("Disconnection: ",payload) #debug
+        #global connected_flags
+        #connected_flags[hash[ip]] = 0
+        key = hash[ip]-1
+        nodes[key].disconnected = 1
+        nodes[key].last_disconnect = payload
+        print("ip: ", ip) #debug
+        print("Last Disconnection: ",payload) #debug
 
     elif(topic == "change_var_response"):
         print("recvd change var response message") #debug
-        message = {
-                "device no.":hash[ip],
-                "ip":ip
-        }
-        message.update(json.loads(payload))
-        to_write = json.dumps(message)
-        global change_var_server
-        change_var_server[hash[ip]].write(to_write)
-        print("Change Var Response: ",message) #debug
+        key = hash[ip]-1
+        message = json.loads(payload)
+        nodes[key].old_threshold = message["from"]
+        nodes[key].current_threshold = message["to"]
+        print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key.current_threshold]) #debug
 
 def on_disconnect(client, userdata, rc):
     os.kill(os.getpid(), signal.SIGUSR1)
@@ -279,19 +273,61 @@ def Initialise_client_object():
     mqtt.Client.suback_flag=False
 
 
-#Bind callbacks
-client = mqtt.Client(client_id="server_client", clean_session=False)
-client.on_connect = on_connect
-client.on_message = on_message
-client.on_disconnect = on_disconnect
-client.on_log=on_log
-Initialise_client_object()
+#Flask Web Application
 
-#connect to broker
-#client.connect("127.0.0.1", 1883, 60)
-client.connect("10.158.56.21", 1883, 60)
-if client.bad_connection_flag:
-    client.loop_stop()    #Stop loop
-    sys.exit()
+# @app.route('/')
+# def homepage():
+#     return render_template('homepage.html')
 
-client.loop_forever()
+# @app.route('/module')
+# def mgmt_module():
+#     return render_template('module.html')
+
+# @app.route('/module/perf_monitor')
+# def performance_monitor_module():
+
+#     return render_template('perf_monitor.html', devices = devices)
+
+# @app.route('/module/uptime_monitor')
+# def uptime_monitor_module():
+#     return render_template('uptime_monitor.html', database)
+
+# @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
+# def change_var_module():
+
+#     change_var_server = []
+#     for i in range(NUM_NODES-1):
+#     change_var_server.append(open("change_var_server"+str(i+1),"r"))
+
+#     #makes fifo file that sends the data to the server
+#     tmpdir = tempfile.mkdtemp()
+#     filename = os.path.join(tmpdir, 'change_var_app')
+#     try:
+#         os.mkfifo(filename)
+#     except OSError as e:
+#         print ("Failed to create FIFO: %s") % e
+#     else:
+#         global change_var_app
+#         change_var_app = open(filename, 'w')
+
+#     return render_template('thresh_adjust.html')
+
+if __name__ == '__main__':
+
+    #Bind callbacks
+    client = mqtt.Client(client_id="host", clean_session=False)
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.on_disconnect = on_disconnect
+    client.on_log=on_log
+    Initialise_client_object()
+
+    #connect to a broker
+    client.connect("10.158.56.21", 1883, 60)
+    if client.bad_connection_flag:
+        client.loop_stop()    #Stop loop
+        sys.exit()
+    client.loop_start()
+
+    #flask web app
+    #app.run(host='0.0.0.0', port=port)
