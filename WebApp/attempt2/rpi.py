@@ -94,6 +94,7 @@ def on_message(client, userdata, msg):
     print("Change var: ",message) #debug
 
 def on_disconnect(client, userdata, rc):
+    client.publish(local_ip+"/status", payload = 'DISCONNECTED', qos = 0, retain = True)
     global cpu
     global mem
     cpu.close()
