@@ -1,3 +1,4 @@
+#mqtt works perfectly on the terminal at this commit
 import paho.mqtt.client as mqtt
 import os, tempfile
 import sys
