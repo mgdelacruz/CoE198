@@ -186,9 +186,10 @@ def on_cpu(client, userdata, msg):
     q.put(msg)
     while not q.empty():
         message = q.get()
-    #print("queue: ",message)#debug
+    print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
+    print(payload)
     raw_topic=str(msg.topic)
     #print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
@@ -199,7 +200,7 @@ def on_cpu(client, userdata, msg):
     #print(topic)
 
     key = hash[ip]-1
-    nodes[key].cpu_file.write(payload) #debug
+    nodes[key].cpu_file.write(payload+'\n') #debug
 
 def on_mem(client, userdata, msg):
     q = Queue()
@@ -219,16 +220,16 @@ def on_mem(client, userdata, msg):
     #print(topic)
 
     key = hash[ip]-1
-    nodes[key].mem_file.write(payload) #debug
+    nodes[key].mem_file.write(payload+'\n') #debug
 
 def on_dc(client, userdata, msg):
     q = Queue()
     q.put(msg)
     while not q.empty():
         message = q.get()
-    print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
+    print(payload)
     raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
@@ -250,9 +251,9 @@ def on_change_var_res(client, userdata, msg):
     q.put(msg)
     while not q.empty():
         message = q.get()
-    print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
+    print(payload)
     raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
