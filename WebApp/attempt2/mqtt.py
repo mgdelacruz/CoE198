@@ -4,7 +4,8 @@ import sys
 import time
 import logging
 import signal
-import threading
+#import threading
+import multiprocessing
 import json
 
 #global variables
@@ -79,7 +80,6 @@ def ping_sweep():
             connected_flags[dev_no-1] = 1
         else:
             connected_flags[dev_no-1] = 0
-
 
 def ping_prompt_loop():
     global ping_prompt
@@ -182,7 +182,7 @@ def on_connect(client, userdata, flags, rc):
         print("initializing uptime monitor threads") #debug
         for ip in IPs:
             try:
-                uptime_threads.append(threading.Thread(target = uptime_monitor,args=(ip,connected_flags[hash[ip]])))
+                uptime_threads.append(multiprocessing.Process(target = uptime_monitor,args=(ip,connected_flags[hash[ip]])))
             except:
                 print ("Error: unable to start uptime thread")
                 client.disconnect() # disconnect
@@ -193,7 +193,7 @@ def on_connect(client, userdata, flags, rc):
         #start threshold adjustment thread
         print("initializing threshold adjustment thread") #debug
         try:
-            change_var_thread = threading.Thread(target = change_var,args=NUM_NODES)
+            change_var_thread = multiprocessing.Process(target = change_var,args=NUM_NODES)
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
@@ -207,7 +207,7 @@ def on_connect(client, userdata, flags, rc):
         ping_prompt = open("ping_prompt","r")
         fps.append(ping_prompt)
         try:
-            ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
+            ping_prompt_thread = multiprocessing.Process(target = ping_prompt_loop,args=())
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
