@@ -80,6 +80,7 @@ def ping_sweep():
         else:
             connected_flags[dev_no-1] = 0
 
+
 def ping_prompt_loop():
     global ping_prompt
     while(True):
