@@ -266,7 +266,7 @@ def on_change_var_res(client, userdata, msg):
     message = json.loads(payload)
     nodes[key].old_threshold = message["from"]
     nodes[key].current_threshold = message["to"]
-    print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key.current_threshold]) #debug
+    print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key].current_threshold) #debug
 
 def on_disconnect(client, userdata, rc):
     os.kill(os.getpid(), signal.SIGUSR1)
