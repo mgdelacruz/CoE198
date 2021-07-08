@@ -331,7 +331,7 @@ client.on_disconnect = on_disconnect
 #client.on_log=on_log
 client.message_callback_add('+/cpu',on_cpu)
 client.message_callback_add('+/mem',on_mem)
-client.message_callback_add('+/disconnection',on_dc)
+client.message_callback_add('+/disconnect',on_dc)
 client.message_callback_add('+/change_var_response',on_change_var_res)
 Initialise_client_object()
 
