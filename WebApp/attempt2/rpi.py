@@ -108,8 +108,9 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 client.on_disconnect = on_disconnect
-client.connect("10.158.56.21", 1883, 60)
 client.will_set(local_ip+"/status", payload = 'DISCONNECTED', qos = 0, retain = True)
+client.connect("10.158.56.21", 1883, 60)
+
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
