@@ -182,7 +182,7 @@ def on_connect(client, userdata, flags, rc):
             ping_prompt_thread.start()
 
     else:
-        logging.info("Bad connection Returned code=",str(rc))
+        #logging.info("Bad connection Returned code=",str(rc))
         client.bad_connection_flag=True
 
 # The callback for when a PUBLISH message is received from the server.
