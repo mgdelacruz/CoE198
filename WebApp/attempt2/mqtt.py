@@ -64,7 +64,6 @@ def signal_handler(signum, frame):
         fp.close()
     for filename in filenames:
         os.remove(filename)
-    logging.info("disconnecting reason " + str(rc))
     client.connected_flag = False
     client.disconnect_flag = True
     client.loop_stop()    #Stop loop
@@ -75,16 +74,14 @@ def signal_handler(signum, frame):
 def ping_sweep():
     print("in fcn")
     global server_to_app
-    for ip in IPs:
+    for i in range(Node.cnt-1):
         print("in for loop")
-        response = os.system("sudo ping -c 1 " + ip + " > dump.txt")
-        dev_no = hash[ip]
-        print("ip: " + ip + " dev_no: "+ str(dev_no))
+        response = os.system("sudo ping -c 1 " + nodes[i].ip + " > dump.txt")
         #check the response:
         if (not response):
-            nodes[hash[ip]-1].disconnected = False
+            nodes[i].disconnected = False
         else:
-            nodes[hash[ip]-1].disconnected = True
+            nodes[i].disconnected = True
 
 def uptime_monitor(ip, local_flag):
     global uptime_app
@@ -178,7 +175,7 @@ def on_connect(client, userdata, flags, rc):
         print("initializing uptime monitor threads") #debug
         for i in range(Node.cnt-1):
             try:
-                nodes[i].uptime_thread = threading.Thread(target = uptime_monitor,args=(nodes[i].ip,nodes[i].disconnected)))
+                nodes[i].uptime_thread = threading.Thread(target = uptime_monitor,args=(nodes[i].ip,nodes[i].disconnected))
             except:
                 print ("Error: unable to start uptime thread")
                 client.disconnect() # disconnect
