@@ -194,7 +194,7 @@ def on_cpu(client, userdata, msg):
     print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
-    raw_topic=msg.topic.join('')
+    raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
     print('temp: ',temp)
@@ -214,7 +214,7 @@ def on_mem(client, userdata, msg):
     print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
-    raw_topic=msg.topic.join('')
+    raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
     print('temp: ',temp)
@@ -234,7 +234,7 @@ def on_dc(client, userdata, msg):
     print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
-    raw_topic=msg.topic.join('')
+    raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
     print('temp: ',temp)
@@ -258,7 +258,7 @@ def on_change_var_res(client, userdata, msg):
     print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
-    raw_topic=msg.topic.join('')
+    raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
     print('temp: ',temp)
