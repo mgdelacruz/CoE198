@@ -159,7 +159,7 @@ def on_connect(client, userdata, flags, rc):
         #start threshold adjustment thread
         print("initializing threshold adjustment thread") #debug
         try:
-            change_var_thread = threading.Thread(target = change_var,args=Node.cnt)
+            change_var_thread = threading.Thread(target = change_var,args=())
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
