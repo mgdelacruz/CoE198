@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import os, tempfile
 import sys
-import logging
+#import logging
 import signal
 import threading
 import json
@@ -215,13 +215,13 @@ def on_mem(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=str(msg.topic)
-    print('raw_topic: ', raw_topic)
+    #print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
-    print('temp: ',temp)
+    #print('temp: ',temp)
     ip = temp[0]
     topic = temp[1]
-    print(ip)
-    print(topic)
+    #print(ip)
+    #print(topic)
 
     key = hash[ip]-1
     nodes[key].mem_file.write(payload) #debug
@@ -277,8 +277,8 @@ def on_change_var_res(client, userdata, msg):
 def on_disconnect(client, userdata, rc):
     os.kill(os.getpid(), signal.SIGUSR1)
 
-def on_log(client, userdata, level, buf):
-    print("log: ",buf)
+#def on_log(client, userdata, level, buf):
+#    print("log: ",buf)
 
 def Initialise_client_object():
     #flags set
@@ -331,7 +331,7 @@ def Initialise_client_object():
 client = mqtt.Client(client_id="host", clean_session=False)
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
-client.on_log=on_log
+#client.on_log=on_log
 client.message_callback_add('+/cpu',on_cpu)
 client.message_callback_add('+/mem',on_mem)
 client.message_callback_add('+/disconnection',on_dc)
