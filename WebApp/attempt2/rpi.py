@@ -5,11 +5,10 @@ import fcntl
 import struct
 from datetime import datetime
 import threading
-import schedule
+import signal
 import logging
 import sys
 import json
-import os
 
 current_threshold = 37.5 #variable to be adjusted on prompt
 old_threshold = None
@@ -26,6 +25,14 @@ def get_ip_address(ifname):
 
 local_ip = get_ip_address('eth0')
 
+def signal_handler(signum, frame):
+    global client
+    client.connected_flag = False
+    client.disconnect_flag = True
+    client.disconnect()
+    client.loop_stop()    #Stop loop
+    sys.exit()
+
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
@@ -33,6 +40,7 @@ def on_connect(client, userdata, flags, rc):
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
 
+    signal.signal(signal.SIGINT, signal_handler) #for disconnect upon exit
     client.subscribe("change_var")
     print("subscribed to change_var") #debug
 
