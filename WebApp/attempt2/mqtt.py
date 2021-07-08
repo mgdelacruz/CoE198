@@ -201,9 +201,11 @@ def on_cpu(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=msg.topic[0]
+    print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
-    ip = temp[1]
-    topic = temp[2]
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
     print(ip)
     print(topic)
 
@@ -219,9 +221,11 @@ def on_mem(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=msg.topic[0]
+    print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
-    ip = temp[1]
-    topic = temp[2]
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
     print(ip)
     print(topic)
 
@@ -237,9 +241,11 @@ def on_dc(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=msg.topic[0]
+    print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
-    ip = temp[1]
-    topic = temp[2]
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
     print(ip)
     print(topic)
 
@@ -259,9 +265,11 @@ def on_change_var_res(client, userdata, msg):
 
     payload=message.payload.decode("utf-8")
     raw_topic=msg.topic[0]
+    print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
-    ip = temp[1]
-    topic = temp[2]
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
     print(ip)
     print(topic)
 
