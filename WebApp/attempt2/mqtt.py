@@ -8,6 +8,7 @@ import json
 from flask import Flask, render_template, url_for, request, redirect
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from queue import Queue
 
 #global variables
 current_threshold = 37.5    #initial threshold value on pi
@@ -149,7 +150,6 @@ def on_connect(client, userdata, flags, rc):
 
         signal.signal(signal.SIGINT, signal_handler) #for cleanup upon exit
         #client.subscribe("self")
-
         f = open("node_IPs.txt", "r")
         for ip in f:
             print("iterating through ips in node_ip.txt") #debug
@@ -211,48 +211,85 @@ def on_connect(client, userdata, flags, rc):
         client.bad_connection_flag=True
 
 # The callback for when a PUBLISH message is received from the server.
-def on_message(client, userdata, msg):
-    print("a message was received") #debug
-    global server_to_app
-    raw_topic=msg.topic,
-    payload=msg.payload.decode("utf-8")
+def on_cpu(client, userdata, msg):
+    q = Queue()
+    q.put(msg)
+    while not q.empty():
+        message = q.get()
+    print("queue: ",message)#debug
+
+    payload=message.payload.decode("utf-8")
+    raw_topic=msg.topic[0]
     temp = raw_topic.split('/', 1)
     ip = temp[1]
-    print(ip)
     topic = temp[2]
+    print(ip)
     print(topic)
 
-    if(topic == "cpu"):
+    key = hash[ip]-1
+    nodes[key].cpu_file.write(payload) #debug
 
-        key = hash[ip]-1
-        #global cpu_usage
-        #cpu_usage[key-1].write(payload)
-        nodes[key].cpu_file.write(payload) #debug
+def on_mem(client, userdata, msg):
+    q = Queue()
+    q.put(msg)
+    while not q.empty():
+        message = q.get()
+    print("queue: ",message)#debug
 
-    elif(topic == "mem"):
+    payload=message.payload.decode("utf-8")
+    raw_topic=msg.topic[0]
+    temp = raw_topic.split('/', 1)
+    ip = temp[1]
+    topic = temp[2]
+    print(ip)
+    print(topic)
 
-        key = hash[ip]-1
-        #global mem_usage
-        #mem_usage[key-1].write(payload)
-        nodes[key].mem_file.write(payload) #debug
+    key = hash[ip]-1
+    nodes[key].mem_file.write(payload) #debug
 
-    elif(topic == "disconnection"):
-        print("recvd disconnect message") #debug
-        #global connected_flags
-        #connected_flags[hash[ip]] = 0
-        key = hash[ip]-1
-        nodes[key].disconnected = 1
-        nodes[key].last_disconnect = payload
-        print("ip: ", ip) #debug
-        print("Last Disconnection: ",payload) #debug
+def on_dc(client, userdata, msg):
+    q = Queue()
+    q.put(msg)
+    while not q.empty():
+        message = q.get()
+    print("queue: ",message)#debug
 
-    elif(topic == "change_var_response"):
-        print("recvd change var response message") #debug
-        key = hash[ip]-1
-        message = json.loads(payload)
-        nodes[key].old_threshold = message["from"]
-        nodes[key].current_threshold = message["to"]
-        print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key.current_threshold]) #debug
+    payload=message.payload.decode("utf-8")
+    raw_topic=msg.topic[0]
+    temp = raw_topic.split('/', 1)
+    ip = temp[1]
+    topic = temp[2]
+    print(ip)
+    print(topic)
+
+    print("recvd disconnect message") #debug
+    key = hash[ip]-1
+    nodes[key].disconnected = 1
+    nodes[key].last_disconnect = payload
+    print("ip: ", ip) #debug
+    print("Last Disconnection: ",payload) #debug
+
+def on_change_var_res(client, userdata, msg):
+    q = Queue()
+    q.put(msg)
+    while not q.empty():
+        message = q.get()
+    print("queue: ",message)#debug
+
+    payload=message.payload.decode("utf-8")
+    raw_topic=msg.topic[0]
+    temp = raw_topic.split('/', 1)
+    ip = temp[1]
+    topic = temp[2]
+    print(ip)
+    print(topic)
+
+    print("recvd change var response message") #debug
+    key = hash[ip]-1
+    message = json.loads(payload)
+    nodes[key].old_threshold = message["from"]
+    nodes[key].current_threshold = message["to"]
+    print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key.current_threshold]) #debug
 
 def on_disconnect(client, userdata, rc):
     os.kill(os.getpid(), signal.SIGUSR1)
@@ -310,9 +347,12 @@ def Initialise_client_object():
 #Bind callbacks
 client = mqtt.Client(client_id="host", clean_session=False)
 client.on_connect = on_connect
-client.on_message = on_message
 client.on_disconnect = on_disconnect
 client.on_log=on_log
+client.message_callback_add('+/cpu',on_cpu)
+client.message_callback_add('+/mem',on_mem)
+client.message_callback_add('+/disconnection',on_dc)
+client.message_callback_add('+/change_var_response',on_change_var_res)
 Initialise_client_object()
 
 #connect to a broker
