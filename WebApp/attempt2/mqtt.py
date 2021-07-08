@@ -21,6 +21,7 @@ cpu = []                    #array of file pointers to text file where cpu data 
 mem = []                    #array of file pointers to text file where memory data for each node is dumped
 connected_flags = []        #used for uptime monitoring
 ping_prompt = None          #fifo file that gets prompt to ping devices
+thread_cnt = None           #counts the number of threads running in the program
 
 def fifo(filename,loop):
 
@@ -80,65 +81,74 @@ def ping_sweep():
         else:
             connected_flags[dev_no-1] = 0
 
+class ping_prompt_loop (threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+    def run(self):
+        global ping_prompt
+        while(True):
+            prompt = ping_prompt.read(1)
+            if prompt:
+                ping_sweep()
 
-def ping_prompt_loop():
-    global ping_prompt
-    while(True):
-        prompt = ping_prompt.read(1)
-        if prompt:
-            ping_sweep()
-
-
-def uptime_monitor(ip, local_flag):
-    global uptime_app
-    dev_no = hash[ip]
-    uptime_app = fifo('uptime_app', dev_no) #creates fifo for server to web app communicaton
-    if(local_flag):
+class uptime_monitor (threading.Thread):
+    def __init__(self, ip, local_flag):
+        threading.Thread.__init__(self)
+        self.ip = ip
+        self.local_flag = local_flag
+    def run (self):
+        global uptime_app
+        dev_no = hash[self.ip]
+        uptime_app = fifo('uptime_app', dev_no) #creates fifo for server to web app communicaton
+        if(self.local_flag):
+                    message = {
+                            "device no.":hash[self.ip],
+                            "ip":self.ip,
+                            "uptime":"CONNECTED"
+                    }
+        else:
                 message = {
-                        "device no.":hash[ip],
-                        "ip":ip,
-                        "uptime":"CONNECTED"
-                }
-    else:
-            message = {
-                "device no.":hash[ip],
-                "ip":ip,
-                "uptime":"DISCONNECTED",
-            }
-    to_write = json.dumps(message)
-    uptime_app.write(to_write)
-
-    while(True):
-        if local_flag != connected_flags[dev_no-1]:
-            local_flag = connected_flags[dev_no-1]
-            if(local_flag):
-                message = {
-                        "device no.":hash[ip],
-                        "ip":ip,
-                        "uptime":"CONNECTED"
-                }
-            else:
-                message = {
-                    "device no.":hash[ip],
-                    "ip":ip,
+                    "device no.":hash[self.ip],
+                    "ip":self.ip,
                     "uptime":"DISCONNECTED",
                 }
-            to_write = json.dumps(message)
-            uptime_app.write(to_write)
+        to_write = json.dumps(message)
+        uptime_app.write(to_write)
 
-def change_var(NUM_NODES):
-    global change_var_server
-    global change_var_app
-    global fps
-    change_var_app = open('change_var_app', 'r')
-    fps.append(change_var_app)
-    for i in range(NUM_NODES-1):
-        change_var_server.append(fifo('change_var_server', i+1))
-    while (True):
-        value = float(change_var_app.read(4))
-        print("read change var file") #debug
-        client.publish("change_var", value)
+        while(True):
+            if self.local_flag != connected_flags[dev_no-1]:
+                self.local_flag = connected_flags[dev_no-1]
+                if(self.local_flag):
+                    message = {
+                            "device no.":hash[self.ip],
+                            "ip":self.ip,
+                            "uptime":"CONNECTED"
+                    }
+                else:
+                    message = {
+                        "device no.":hash[self.ip],
+                        "ip":self.ip,
+                        "uptime":"DISCONNECTED",
+                    }
+                to_write = json.dumps(message)
+                uptime_app.write(to_write)
 
+class change_var (threading.Thread):
+    def __init__(self, NUM_NODES):
+        threading.Thread.__init__(self)
+        self.NUM_NODES = NUM_NODES
+    def run (self):
+        global change_var_server
+        global change_var_app
+        global fps
+        change_var_app = open('change_var_app', 'r')
+        fps.append(change_var_app)
+        for i in range(self.NUM_NODES-1):
+            change_var_server.append(fifo('change_var_server', i+1))
+        while (True):
+            value = float(change_var_app.read(4))
+            print("read change var file") #debug
+            client.publish("change_var", value)
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -182,7 +192,7 @@ def on_connect(client, userdata, flags, rc):
         print("initializing uptime monitor threads") #debug
         for ip in IPs:
             try:
-                uptime_threads.append(threading.Thread(target = uptime_monitor,args=(ip,connected_flags[hash[ip]])))
+                uptime_threads.append(uptime_monitor(ip,connected_flags[hash[ip]]))
             except:
                 print ("Error: unable to start uptime thread")
                 client.disconnect() # disconnect
@@ -193,7 +203,7 @@ def on_connect(client, userdata, flags, rc):
         #start threshold adjustment thread
         print("initializing threshold adjustment thread") #debug
         try:
-            change_var_thread = threading.Thread(target = change_var,args=NUM_NODES)
+            change_var_thread = change_var(NUM_NODES)
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
@@ -207,7 +217,7 @@ def on_connect(client, userdata, flags, rc):
         ping_prompt = open("ping_prompt","r")
         fps.append(ping_prompt)
         try:
-            ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
+            ping_prompt_thread = ping_prompt_loop()
         except:
             print ("Error: unable to start change var thread")
             client.disconnect() # disconnect
