@@ -304,7 +304,7 @@ def performance_monitor_module():
 def uptime_monitor_module():
     return render_template('uptime_monitor.html', nodes = nodes)
 
-@app.route('/uptime_monitor/ping_sweep')
+@app.route('/module/uptime_monitor/ping_sweep')
 def ping_sweep_flask():
 
     ping_sweep()
@@ -322,21 +322,21 @@ def change_var_module():
         #value.put(float(request.form['value']))
         value = float(request.form['value'])
         try:
-            return redirect('/module/thresh_adjust/{{value}}')
+            return redirect('/module/thresh_adjust/<float:value>')
         except:
             'Invalid input'
     else:
         return render_template('thresh_adjust.html', nodes = nodes)
 
 @app.route('/module/thresh_adjust/<float:value>')
-def ping_sweep_flask():
+def pub(value):
 
-    ping_sweep()
+    client.publish("change_var", {{value}})
 
     try:
-        return redirect('/uptime_monitor')
+        return redirect('/module/thresh_adjust')
     except:
-        return 'There was a problem in executing ping_sweep'
+        return 'There was a problem in executing publish'
 
 if __name__ == '__main__':
 
