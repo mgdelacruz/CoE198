@@ -305,6 +305,8 @@ if __name__ == '__main__':
     #client.on_log=on_log
     client.message_callback_add('+/cpu',on_cpu)
     client.message_callback_add('+/mem',on_mem)
+    client.message_callback_add('+/cpu_flag',on_cpu_flag)
+    client.message_callback_add('+/mem_flag',on_mem_flag)
     client.message_callback_add('+/status',on_status)
     client.message_callback_add('+/change_var_response',on_change_var_res)
     Initialise_client_object()
