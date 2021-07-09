@@ -317,7 +317,7 @@ def ping_sweep_flask():
 
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
 def change_var_module():
-    if request.method == 'POST':
+    if request.method == 'GET':
         #global value
         #value.put(float(request.form['value']))
         value = float(request.form['value'])
