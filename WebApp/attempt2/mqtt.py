@@ -326,7 +326,7 @@ def change_var_module():
             #return redirect('/module/thresh_adjust/<float:value>')
             return render_template('thresh_adjust.html', nodes = nodes)
         except:
-            'Invalid input'
+            return 'Invalid input'
     else:
         return render_template('thresh_adjust.html', nodes = nodes)
 
