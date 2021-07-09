@@ -19,6 +19,8 @@ ping_prompt = None          #fifo file that gets prompt to ping devices
 nodes = []                  #array of Node objects
 change = False              #flag for changes to database
 client = None               #global Client
+value = Queue(1)            #threshold value
+change_var_mes = Queue()    #change var response
 class Node ():
     cnt = 0
     def __init__ (self, ip):
@@ -32,8 +34,8 @@ class Node ():
         self.mem_flag = ''
         self.status = ''
         self.ping = ''
-        self.current_threshold = '37.5'
-        self.old_threshold = ''
+        self.current_threshold = Queue()
+        self.old_threshold = Queue()
     def __del__(self):
         self.cpu_file.close()
         self.mem_file.close()
@@ -60,8 +62,7 @@ def ping_sweep():
             nodes[i].ping = 'DISCONNECTED'
 
 def change_var():
-    while (True):
-        value = input("Enter a variable: ")
+    while not value.empty():
         print("changing variables to " + value) #debug
         client.publish("change_var", value)
 
@@ -125,29 +126,29 @@ def on_connect(client, userdata, flags, rc):
 
 # The callback for when a PUBLISH message is received from the server.
 def on_cpu(client, userdata, msg):
-    q = Queue()
+    q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
-    print("queue: ",message)#debug
+        print("queue: ",message)#debug
 
-    payload=message.payload.decode("utf-8")
-    print(payload)
-    raw_topic=str(msg.topic)
-    #print('raw_topic: ', raw_topic)
-    temp = raw_topic.split('/', 1)
-    #print('temp: ',temp)
-    ip = temp[0]
-    topic = temp[1]
-    #print(ip)
-    #print(topic)
+        payload=message.payload.decode("utf-8")
+        print(payload)
+        raw_topic=str(msg.topic)
+        #print('raw_topic: ', raw_topic)
+        temp = raw_topic.split('/', 1)
+        #print('temp: ',temp)
+        ip = temp[0]
+        topic = temp[1]
+        #print(ip)
+        #print(topic)
 
-    key = hash[ip]-1
-    nodes[key].cpu_file.write(payload+'\n') #debug
-    print('wrote to cpu file')
+        key = hash[ip]-1
+        nodes[key].cpu_file.write(payload+'\n') #debug
+        print('wrote to cpu file')
 
 def on_mem(client, userdata, msg):
-    q = Queue()
+    q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
@@ -167,7 +168,7 @@ def on_mem(client, userdata, msg):
     nodes[key].mem_file.write(payload+'\n') #debug
 
 def on_status(client, userdata, msg):
-    q = Queue()
+    q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
@@ -190,74 +191,68 @@ def on_status(client, userdata, msg):
     print("Status: ",payload) #debug
 
 def on_cpu_flag(client, userdata, msg):
-    q = Queue()
+    q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
-
-    payload=message.payload.decode("utf-8")
-    print(payload)
-    raw_topic=str(msg.topic)
-    print('raw_topic: ', raw_topic)
-    temp = raw_topic.split('/', 1)
-    print('temp: ',temp)
-    ip = temp[0]
-    topic = temp[1]
-    print(ip)
-    print(topic)
-
-    print("recvd disconnect message") #debug
-    key = hash[ip]-1
-    nodes[key].cpu_flag = payload
-    print("ip: ", ip) #debug
-    print("CPU_Flag: ",payload) #debug
+        payload=message.payload.decode("utf-8")
+        print(payload)
+        raw_topic=str(msg.topic)
+        print('raw_topic: ', raw_topic)
+        temp = raw_topic.split('/', 1)
+        print('temp: ',temp)
+        ip = temp[0]
+        topic = temp[1]
+        print(ip)
+        print(topic)
+        print("recvd disconnect message") #debug
+        key = hash[ip]-1
+        nodes[key].cpu_flag = payload
+        print("ip: ", ip) #debug
+        print("CPU_Flag: ",payload) #debug
 
 def on_mem_flag(client, userdata, msg):
-    q = Queue()
+    q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
-
-    payload=message.payload.decode("utf-8")
-    print(payload)
-    raw_topic=str(msg.topic)
-    print('raw_topic: ', raw_topic)
-    temp = raw_topic.split('/', 1)
-    print('temp: ',temp)
-    ip = temp[0]
-    topic = temp[1]
-    print(ip)
-    print(topic)
-
-    print("recvd disconnect message") #debug
-    key = hash[ip]-1
-    nodes[key].mem_flag = payload
-    print("ip: ", ip) #debug
-    print("Mem_Flag: ",payload) #debug
+        payload=message.payload.decode("utf-8")
+        print(payload)
+        raw_topic=str(msg.topic)
+        print('raw_topic: ', raw_topic)
+        temp = raw_topic.split('/', 1)
+        print('temp: ',temp)
+        ip = temp[0]
+        topic = temp[1]
+        print(ip)
+        print(topic)
+        print("recvd disconnect message") #debug
+        key = hash[ip]-1
+        nodes[key].mem_flag = payload
+        print("ip: ", ip) #debug
+        print("Mem_Flag: ",payload) #debug
 
 def on_change_var_res(client, userdata, msg):
-    q = Queue()
+    q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
-
-    payload=message.payload.decode("utf-8")
-    print(payload)
-    raw_topic=str(msg.topic)
-    print('raw_topic: ', raw_topic)
-    temp = raw_topic.split('/', 1)
-    print('temp: ',temp)
-    ip = temp[0]
-    topic = temp[1]
-    print(ip)
-    print(topic)
-
-    print("recvd change var response message") #debug
-    key = hash[ip]-1
-    message = json.loads(payload)
-    nodes[key].old_threshold = message["from"]
-    nodes[key].current_threshold = message["to"]
-    print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key].current_threshold) #debug
+        payload=message.payload.decode("utf-8")
+        print(payload)
+        raw_topic=str(msg.topic)
+        print('raw_topic: ', raw_topic)
+        temp = raw_topic.split('/', 1)
+        print('temp: ',temp)
+        ip = temp[0]
+        topic = temp[1]
+        print(ip)
+        print(topic)
+        print("recvd change var response message") #debug
+        key = hash[ip]-1
+        message = json.loads(payload)
+        nodes[key].old_threshold.put(message["from"])
+        nodes[key].current_threshold.put(message["to"])
+        print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key].current_threshold) #debug
 
 def on_disconnect(client, userdata, rc):
     os.kill(os.getpid(), signal.SIGUSR1)
@@ -283,7 +278,7 @@ def homepage():
 def mgmt_module():
     return render_template('module.html')
 
-@app.route('/module/perf_monitor', methods=['POST', 'GET'])
+@app.route('/module/perf_monitor')
 def performance_monitor_module():
     return render_template('perf_monitor.html', nodes = nodes)
 
@@ -293,7 +288,14 @@ def uptime_monitor_module():
 
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
 def change_var_module():
-    return render_template('thresh_adjust.html')
+    if request.method == 'POST':
+        value.put(float(request.form.get('value')))
+        try:
+            return redirect('/module/thresh_adjust')
+        except:
+            'Invalid input'
+    else:
+        return render_template('thresh_adjust.html', nodes = nodes)
 
 if __name__ == '__main__':
 
