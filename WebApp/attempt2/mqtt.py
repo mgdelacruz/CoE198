@@ -324,11 +324,12 @@ def change_var_module():
         try:
             client.publish("change_var", value)
             #return redirect('/module/thresh_adjust/<float:value>')
-            return render_template('thresh_adjust.html', nodes = nodes)
+            #return render_template('thresh_adjust.html', nodes = nodes)
         except:
             return 'Invalid input'
     else:
         return render_template('thresh_adjust.html', nodes = nodes)
+    return render_template('thresh_adjust.html', nodes = nodes)
 
 # @app.route('/module/thresh_adjust/<float:value>')
 # def pub(value):
