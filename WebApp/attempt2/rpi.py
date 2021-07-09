@@ -76,8 +76,9 @@ def cpu_monitor():
 
 def memory_monitor():
     while(True):
-        x = str((psutil.virtual_memory().used/psutil.virtual_memory().total)*100)
-        client.publish(local_ip+"/mem", x[0:5])
+        x = (psutil.virtual_memory().used/psutil.virtual_memory().total)*100
+        y = str(x)
+        client.publish(local_ip+"/mem", y[0:5])
         if x > 90:
             client.publish(local_ip+'/mem_flag',payload = 'HIGH', qos = 0, retain = True)
         mem.write(x) #debug

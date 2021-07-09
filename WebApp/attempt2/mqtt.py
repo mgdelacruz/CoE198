@@ -284,11 +284,11 @@ def mgmt_module():
     return render_template('module.html')
 
 @app.route('/module/perf_monitor', methods=['POST', 'GET'])
-def performance_monitor_module(nodes):
+def performance_monitor_module():
     return render_template('perf_monitor.html', nodes = nodes)
 
 @app.route('/module/uptime_monitor')
-def uptime_monitor_module(nodes):
+def uptime_monitor_module():
     return render_template('uptime_monitor.html', nodes = nodes)
 
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
