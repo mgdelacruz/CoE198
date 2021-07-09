@@ -1,0 +1,33 @@
+{% block head %}
+
+<title> CATIFS via ICOTS </title>
+
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1>Threshold Adjustment</h1>
+    <table>
+        <tr>
+            <th>Device</th>
+            <th>ID</th>
+            <th>IP</th>
+            <th>Previous Threshold</th>
+            <th>Current Threshold</th>
+        </tr>
+        {% for node in nodes %}
+        <tr>
+            <td>{{ node.device }}</td>
+            <td>{{ node.dev_no}}</td>
+            <td>{{ node.ip}}</td>
+            <td>{{ node.old_threshold.get()}}</td>
+            <td>{{ node.current_threshold.get()}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <form action="/module/thresh_adjust" method="POST">
+        <input type="text" name="value" id="value">
+        <input type="submit" value="Submit">
+    </form>
+</div>
+{% endblock %}
