@@ -322,6 +322,7 @@ def change_var_module():
         #value.put(float(request.form['value']))
         value = float(request.form.get('value'))
         try:
+            global client
             client.publish("change_var", value)
             #return redirect('/module/thresh_adjust/<float:value>')
             #return render_template('thresh_adjust.html', nodes = nodes)
