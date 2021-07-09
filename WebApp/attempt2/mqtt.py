@@ -11,6 +11,23 @@ from flask_sqlalchemy import SQLAlchemy
 from queue import Queue
 
 app = Flask(__name__)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+# db = SQLAlchemy(app)
+
+# class Nodes(db.Model):
+#     dev_no = db.Column(db.Integer, primary_key=True)
+#     device = db.Column(db.String(200), nullable=False)
+#     ip = db.Column(db.String(15), primary_key=True)
+#     cpu_flag = db.Column(db.Float, nullable=True)
+#     memory_flag = db.Column(db.Float, nullable=True)
+#     status = db.Column(db.String(15), nullable = False)
+#     ping = db.Column(db.String(15), nullable = False)
+#     current_threshold = (db.Float, nullable=False)
+#     old_threshold = (db.Float, nullable=False)
+
+#     def __repr__(self):
+#         return '<Task %r>' % self.id
+
 
 #global variables
 hash={}                     #stores ip to device no. mapping
@@ -19,8 +36,8 @@ ping_prompt = None          #fifo file that gets prompt to ping devices
 nodes = []                  #array of Node objects
 change = False              #flag for changes to database
 client = None               #global Client
-value = Queue(1)            #threshold value
-change_var_mes = Queue()    #change var response
+#value = Queue(1)            #threshold value
+#change_var_mes = Queue()    #change var response
 class Node ():
     cnt = 0
     def __init__ (self, ip):
@@ -39,6 +56,7 @@ class Node ():
     def __del__(self):
         self.cpu_file.close()
         self.mem_file.close()
+
 
 def signal_handler(signum, frame):
     global client
@@ -61,17 +79,17 @@ def ping_sweep():
         else:
             nodes[i].ping = 'DISCONNECTED'
 
-def change_var():
-    while not value.empty():
-        print("changing variables to " + value) #debug
-        client.publish("change_var", value)
+#def change_var():
+    #while not value.empty():
+        #print("changing variables to " + value) #debug
+        #client.publish("change_var", value)
 
-def ping_prompt_loop():
-    global ping_prompt
-    while(True):
-        prompt = input("Ping sweep? y/n:")
-        if prompt == 'y':
-            ping_sweep()
+# def ping_prompt_loop():
+#     global ping_prompt
+#     while(True):
+#         prompt = input("Ping sweep? y/n:")
+#         if prompt == 'y':
+#             ping_sweep()
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -99,26 +117,26 @@ def on_connect(client, userdata, flags, rc):
         f.close()
 
         #start threshold adjustment thread
-        print("initializing threshold adjustment thread") #debug
-        try:
-            change_var_thread = threading.Thread(target = change_var,args=())
-        except:
-            print ("Error: unable to start change var thread")
-            client.disconnect() # disconnect
-        else:
-            change_var_thread.daemon = True
-            change_var_thread.start()
+        # print("initializing threshold adjustment thread") #debug
+        # try:
+        #     change_var_thread = threading.Thread(target = change_var,args=())
+        # except:
+        #     print ("Error: unable to start change var thread")
+        #     client.disconnect() # disconnect
+        # else:
+        #     change_var_thread.daemon = True
+        #     change_var_thread.start()
 
         #start ping prompt thread
-        print("initializing ping prompt thread") #debug
-        try:
-            ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
-        except:
-            print ("Error: unable to start change var thread")
-            client.disconnect() # disconnect
-        else:
-            ping_prompt_thread.daemon = True
-            ping_prompt_thread.start()
+        # print("initializing ping prompt thread") #debug
+        # try:
+        #     ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
+        # except:
+        #     print ("Error: unable to start change var thread")
+        #     client.disconnect() # disconnect
+        # else:
+        #     ping_prompt_thread.daemon = True
+        #     ping_prompt_thread.start()
 
     else:
         #logging.info("Bad connection Returned code=",str(rc))
@@ -286,10 +304,24 @@ def performance_monitor_module():
 def uptime_monitor_module():
     return render_template('uptime_monitor.html', nodes = nodes)
 
+@app.route('/uptime_monitor/ping_sweep')
+def ping_sweep_flask():
+
+    ping_sweep()
+
+    try:
+        return redirect('/uptime_monitor')
+    except:
+        return 'There was a problem in executing ping_sweep'
+
+
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
 def change_var_module():
     if request.method == 'POST':
-        value.put(float(request.form['value']))
+        #global value
+        #value.put(float(request.form['value']))
+        value = float(request.form['value'])
+        client.publish("change_var", value)
         try:
             return redirect('/module/thresh_adjust')
         except:
