@@ -289,7 +289,7 @@ def uptime_monitor_module():
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
 def change_var_module():
     if request.method == 'POST':
-        value.put(float(request.form.get('value')))
+        value.put(float(request.form['value']))
         try:
             return redirect('/module/thresh_adjust')
         except:
