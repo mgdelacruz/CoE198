@@ -81,7 +81,7 @@ def memory_monitor():
         client.publish(local_ip+"/mem", y[0:5])
         if x > 90:
             client.publish(local_ip+'/mem_flag',payload = 'HIGH', qos = 0, retain = True)
-        mem.write(x) #debug
+        mem.write(y) #debug
 
 # The callback for when a PUBLISH message is received from the server.
 #handles change a variable feature
