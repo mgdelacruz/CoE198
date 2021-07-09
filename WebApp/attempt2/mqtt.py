@@ -320,7 +320,7 @@ def change_var_module():
     if request.method == 'GET':
         #global value
         #value.put(float(request.form['value']))
-        value = float(request.form['value'])
+        value = float(request.form.get('value'))
         try:
             client.publish("change_var", value)
             #return redirect('/module/thresh_adjust/<float:value>')
