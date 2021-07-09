@@ -14,16 +14,16 @@
             <th>Device</th>
             <th>ID</th>
             <th>IP</th>
-            <th>INTERNET CONNECTIVITY</th>
-            <th>SERVER CONNECTIVITY</th>
+            <th>CPU USAGE</th>
+            <th>MEMORY USAGE</th>
         </tr>
         {% for node in nodes %}
         <tr>
             <td>{{ node.device }}</td>
             <td>{{ node.dev_no}}</td>
             <td>{{ node.ip}}</td>
-            <td>{{ node.ping}}</td>
-            <td>{{ node.status}}</td>
+            <td>{{ node.cpu_flag}}</td>
+            <td>{{ node.mem_flag}}</td>
         </tr>
         {% endfor %}
     </table>

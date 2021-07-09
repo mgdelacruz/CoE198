@@ -310,7 +310,7 @@ def ping_sweep_flask():
     ping_sweep()
 
     try:
-        return redirect('/uptime_monitor')
+        return redirect('/module/uptime_monitor')
     except:
         return 'There was a problem in executing ping_sweep'
 
@@ -321,13 +321,22 @@ def change_var_module():
         #global value
         #value.put(float(request.form['value']))
         value = float(request.form['value'])
-        client.publish("change_var", value)
         try:
-            return redirect('/module/thresh_adjust')
+            return redirect('/module/thresh_adjust/{{value}}')
         except:
             'Invalid input'
     else:
         return render_template('thresh_adjust.html', nodes = nodes)
+
+@app.route('/module/thresh_adjust/<float:value>')
+def ping_sweep_flask():
+
+    ping_sweep()
+
+    try:
+        return redirect('/uptime_monitor')
+    except:
+        return 'There was a problem in executing ping_sweep'
 
 if __name__ == '__main__':
 
