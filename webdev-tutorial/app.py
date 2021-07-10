@@ -18,7 +18,9 @@ class Todo(db.Model):
 def product_page():
     if request.method == 'POST':
         task_content = request.form['content']
+        print(type(task_content))
         new_task = Todo(content=task_content)
+        print(type(new_task))
 
         try:
             db.session.add(new_task)
