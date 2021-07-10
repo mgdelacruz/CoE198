@@ -103,7 +103,7 @@ def on_connect(client, userdata, flags, rc):
         #client.subscribe("self")
         f = open("node_IPs.txt", "r")
         for ip in f:
-            print("iterating through ips in node_ip.txt") #debugs
+            print("iterating through ips in node_ip.txt: ip = ", str(ip)) #debugs
             #populate hash table, initialize connected flags and subscribe to node topics
             global hash
             nodes.append(Node(ip.rstrip()))
