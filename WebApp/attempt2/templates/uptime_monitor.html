@@ -16,6 +16,7 @@
             <th>IP</th>
             <th>INTERNET<br>CONNECTIVITY</th>
             <th>SERVER<br>CONNECTIVITY</th>
+            <th>PACKET<br>DROP RATE</th>
             <!--<th>
                 <a href="/module/uptime_monitor/ping_sweep">PING SWEEP</a>
             </th>-->
@@ -28,6 +29,7 @@
             <td>{{ node.ip}}</td>
             <td>{{ node.ping}}</td>
             <td>{{ node.status}}</td>
+            <td>{{ node.packet_drp_rate}}</td>
         </tr>
         {% endfor %}
     </table>

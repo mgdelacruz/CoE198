@@ -54,6 +54,9 @@ class Node ():
         self.old_threshold = Queue()
         self.print_cur_thresh = ''
         self.print_old_thresh = ''
+        self.ping_fails = 0
+        self.num_pings = 0
+        self.packet_drp_rate = ''
     def __del__(self):
         self.cpu_file.close()
         self.mem_file.close()
@@ -78,15 +81,19 @@ def signal_handler(signum, frame):
 def ping_sweep(pings):
     print("in fcn")
     for i in range(pings):
-        for node in nodes:
-            print("pinging this pi: ", node.ip)
-            response = os.system("sudo ping -c 1 " + node.ip + " > dump.txt")
+        for i in range(Node.cnt):
+            print("pinging this pi: ", nodes[i].ip)
+            nodes[i].num_pings += 1
+            response = os.system("sudo ping -c 1 " + nodes[i].ip + " > dump.txt")
             #check the response:
             if (not response):
-                node.ping = 'CONNECTED'
+                nodes[i].ping = 'CONNECTED'
             else:
-                node.ping = 'DISCONNECTED'
-            print("reponse: ", node.ping, print)
+                nodes[i].ping = 'DISCONNECTED'
+                nodes[i].ping_fails += 1
+            print("reponse: ", nodes[i].ping, print)
+    for i in range(Node.cnt):
+        nodes[i].packet_drp_rate = str(nodes[i].ping_fails/nodes[i].num_pings)
 
 # def change_var():
 #     while (True):
