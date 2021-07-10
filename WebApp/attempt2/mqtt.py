@@ -36,7 +36,7 @@ ping_prompt = None          #fifo file that gets prompt to ping devices
 nodes = []                  #array of Node objects
 change = False              #flag for changes to database
 client = None               #global Client
-value = Queue(1)            #threshold value
+#value = Queue(1)            #threshold value
 class Node ():
     cnt = 0
     def __init__ (self, ip):
@@ -78,11 +78,11 @@ def ping_sweep():
         else:
             nodes[i].ping = 'DISCONNECTED'
 
-def change_var():
-    while (True):
-        while not value.empty():
-            print("changing variables to " + value) #debug
-            client.publish("change_var", value)
+# def change_var():
+#     while (True):
+#         while not value.empty():
+#             print("changing variables to " + value) #debug
+#             client.publish("change_var", value)
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -110,15 +110,15 @@ def on_connect(client, userdata, flags, rc):
         f.close()
 
         #start threshold adjustment thread
-        print("initializing threshold adjustment thread") #debug
-        try:
-            change_var_thread = threading.Thread(target = change_var,args=())
-        except:
-            print ("Error: unable to start change var thread")
-            client.disconnect() # disconnect
-        else:
-            change_var_thread.daemon = True
-            change_var_thread.start()
+        # print("initializing threshold adjustment thread") #debug
+        # try:
+        #     change_var_thread = threading.Thread(target = change_var,args=())
+        # except:
+        #     print ("Error: unable to start change var thread")
+        #     client.disconnect() # disconnect
+        # else:
+        #     change_var_thread.daemon = True
+        #     change_var_thread.start()
 
     else:
         client.bad_connection_flag=True
@@ -297,13 +297,13 @@ def ping_sweep_flask():
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
 def change_var_module():
     if request.method == 'POST':
-        global value
-        value.put(float(request.form['value']))
-        #value = float(request.form.get('value'))
+        #global value
+        #value.put(float(request.form['value']))
+        value = float(request.form.get('value'))
         try:
             #global client
             #client.publish("change_var", value)
-            return redirect('/module/thresh_adjust')
+            return redirect('/module/thresh_adjust/<float:value>')
             #return render_template('thresh_adjust.html', nodes = nodes)
         except:
             return 'Invalid input'
@@ -311,15 +311,15 @@ def change_var_module():
         return render_template('thresh_adjust.html', nodes = nodes)
     #return render_template('thresh_adjust.html', nodes = nodes)
 
-# @app.route('/module/thresh_adjust/<float:value>')
-# def pub(value):
+@app.route('/module/thresh_adjust/<float:value>')
+def pub(value):
 
-#     client.publish("change_var", {{value}})
+    client.publish("change_var", {{value}})
 
-#     try:
-#         return redirect('/module/thresh_adjust')
-#     except:
-#         return 'There was a problem in executing publish'
+    try:
+        return redirect('/module/thresh_adjust')
+    except:
+        return 'There was a problem in executing publish'
 
 if __name__ == '__main__':
 
