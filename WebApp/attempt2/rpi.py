@@ -67,7 +67,8 @@ def on_connect(client, userdata, flags, rc):
 
 def cpu_monitor():
     while(True):
-        x=psutil.cpu_percent(interval=1,percpu=True)
+        #x=psutil.cpu_percent(interval=1,percpu=True)
+        x = psutil.getloadavg()
         client.publish(local_ip+"/cpu",str(x[0]))
         print("published cpu")
         if x[0] > 90:
