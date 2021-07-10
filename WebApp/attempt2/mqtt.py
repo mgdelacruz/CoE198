@@ -299,7 +299,7 @@ def change_var_module():
     if request.method == 'POST':
         #global value
         #value.put(float(request.form['value']))
-        value = float(request.form.get('value'))
+        value = float(request.form['value'])
         try:
             #global client
             client.publish("change_var", str(value))
