@@ -87,6 +87,7 @@ def ping_sweep():
             node.ping = 'CONNECTED'
         else:
             node.ping = 'DISCONNECTED'
+        print("reponse: ", node.ping)
 
 # def change_var():
 #     while (True):
