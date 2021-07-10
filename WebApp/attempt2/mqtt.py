@@ -302,24 +302,23 @@ def change_var_module():
         value = float(request.form.get('value'))
         try:
             #global client
-            #client.publish("change_var", value)
-            return redirect('/module/thresh_adjust/<float:value>')
+            client.publish("change_var", str(value))
+            return redirect('/module/thresh_adjust')
             #return render_template('thresh_adjust.html', nodes = nodes)
         except:
             return 'Invalid input'
     else:
         return render_template('thresh_adjust.html', nodes = nodes)
-    #return render_template('thresh_adjust.html', nodes = nodes)
 
-@app.route('/module/thresh_adjust/<float:value>')
-def pub(value):
+# @app.route('/module/thresh_adjust/<float:value>')
+# def pub(value):
 
-    client.publish("change_var", {{value}})
+#     client.publish("change_var", {{value}})
 
-    try:
-        return redirect('/module/thresh_adjust')
-    except:
-        return 'There was a problem in executing publish'
+#     try:
+#         return redirect('/module/thresh_adjust')
+#     except:
+#         return 'There was a problem in executing publish'
 
 if __name__ == '__main__':
 
