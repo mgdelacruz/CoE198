@@ -162,7 +162,7 @@ def on_cpu(client, userdata, msg):
     topic = temp[1]
     #print(ip)
     #print(topic)
-    key = hash[ip]
+    key = hash[ip]-1
     nodes[key].cpu_file.write(payload+'\n') #debug
     print('wrote to cpu file')
 
@@ -182,7 +182,7 @@ def on_mem(client, userdata, msg):
     topic = temp[1]
     #print(ip)
     #print(topic)
-    key = hash[ip]
+    key = hash[ip]-1
     nodes[key].mem_file.write(payload+'\n') #debug
 
 def on_status(client, userdata, msg):
@@ -202,7 +202,7 @@ def on_status(client, userdata, msg):
     print(ip)
     print(topic)
     print("recvd disconnect message") #debug
-    key = hash[ip]
+    key = hash[ip]-1
     nodes[key].status = payload
     print("ip: ", ip) #debug
     print("Status: ",payload) #debug
@@ -224,7 +224,7 @@ def on_cpu_flag(client, userdata, msg):
     print(ip)
     print(topic)
     print("recvd disconnect message") #debug
-    key = hash[ip]
+    key = hash[ip]-1
     nodes[key].cpu_flag = payload
     print("ip: ", ip) #debug
     print("CPU_Flag: ",payload) #debug
@@ -246,7 +246,7 @@ def on_mem_flag(client, userdata, msg):
     print(ip)
     print(topic)
     print("recvd disconnect message") #debug
-    key = hash[ip]
+    key = hash[ip]-1
     nodes[key].mem_flag = payload
     print("ip: ", ip) #debug
     print("Mem_Flag: ",payload) #debug
@@ -269,7 +269,7 @@ def on_change_var_res(client, userdata, msg):
     print(ip)
     print(topic)
     print("recvd change var response message") #debug
-    key = hash[ip]
+    key = hash[ip]-1
     json_decoded = json.loads(payload)
     print(type(json_decoded))
     print(json_decoded)
