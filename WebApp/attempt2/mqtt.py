@@ -48,13 +48,22 @@ class Node ():
         self.mem_file = None
         self.cpu_flag = ''
         self.mem_flag = ''
-        self.status = ''
+        self.status = 'DISCONNECTED'
         self.ping = ''
         self.current_threshold = Queue()
         self.old_threshold = Queue()
+        self.print_cur_thresh = ''
+        self.print_old_thresh = ''
     def __del__(self):
         self.cpu_file.close()
         self.mem_file.close()
+    def update_thresh1(self):
+        while not self.current_threshold.empty():
+            self.print_cur_thresh = self.current_threshold.get()
+    def update_thresh2(self):
+        while not self.old_threshold.empty():
+            self.print_old_thresh = self.old_threshold.get()
+
 
 
 def signal_handler(signum, frame):
@@ -258,9 +267,13 @@ def on_change_var_res(client, userdata, msg):
     print(json_decoded["from"])
     print(json_decoded["to"])
     nodes[key].old_threshold.put(json_decoded["from"])
+    nodes[key].update_thresh2()
+    print(nodes[key].print_old_thresh)
     nodes[key].current_threshold.put(json_decoded["to"])
+    nodes[key].update_thresh1()
+    print(nodes[key].print_cur_thresh)
     print("I UPDATED THE NODES")
-    print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key].current_threshold) #debug
+    print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].print_old_thresh, ' ,', nodes[key].print_cur_thresh) #debug
 
 def on_disconnect(client, userdata, rc):
     os.kill(os.getpid(), signal.SIGUSR1)
