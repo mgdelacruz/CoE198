@@ -309,7 +309,7 @@ def uptime_monitor_module():
     if request.method == 'POST':
         value = request.form['value']
         try:
-            ping_sweep(value)
+            ping_sweep(int(value))
             return redirect('/module/uptime_monitor')
         except:
             return 'Error in ping sweep'
