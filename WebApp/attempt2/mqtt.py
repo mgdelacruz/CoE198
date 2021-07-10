@@ -269,7 +269,7 @@ def Initialise_client_object():
 
 @app.route('/')
 def homepage():
-    return render_template('home.html')
+    return render_template('homepage.html')
 
 @app.route('/module')
 def mgmt_module():
