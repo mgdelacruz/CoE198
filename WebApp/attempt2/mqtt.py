@@ -164,7 +164,7 @@ def on_cpu(client, userdata, msg):
     #print(ip)
     #print(topic)
     key = hash[ip]-1
-    nodes[key].cpu_file.write(payload+'\n') #debug
+    nodes[key].cpu_file.write(payload+'\r\n') #debug
     print('wrote to cpu file')
 
 def on_mem(client, userdata, msg):
@@ -184,7 +184,7 @@ def on_mem(client, userdata, msg):
     #print(ip)
     #print(topic)
     key = hash[ip]-1
-    nodes[key].mem_file.write(payload+'\n') #debug
+    nodes[key].mem_file.write(payload+'\r\n') #debug
 
 def on_status(client, userdata, msg):
     q = Queue(1)
