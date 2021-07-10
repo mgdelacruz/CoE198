@@ -304,7 +304,7 @@ def mgmt_module():
 def performance_monitor_module():
     return render_template('perf_monitor.html', nodes = nodes)
 
-@app.route('/module/uptime_monitor')
+@app.route('/module/uptime_monitor', methods=['POST', 'GET'])
 def uptime_monitor_module():
     if request.method == 'POST':
         value = request.form['value']
