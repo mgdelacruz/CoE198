@@ -132,29 +132,28 @@ def on_cpu(client, userdata, msg):
     q.put(msg)
     while not q.empty():
         message = q.get()
-        print("queue: ",message)#debug
 
-        payload=message.payload.decode("utf-8")
-        print(payload)
-        raw_topic=str(msg.topic)
-        #print('raw_topic: ', raw_topic)
-        temp = raw_topic.split('/', 1)
-        #print('temp: ',temp)
-        ip = temp[0]
-        topic = temp[1]
-        #print(ip)
-        #print(topic)
-
-        key = hash[ip]-1
-        nodes[key].cpu_file.write(payload+'\n') #debug
-        print('wrote to cpu file')
+    print("queue: ",message)#debug
+    payload=message.payload.decode("utf-8")
+    #print(payload)
+    raw_topic=str(msg.topic)
+    #print('raw_topic: ', raw_topic)
+    temp = raw_topic.split('/', 1)
+    #print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
+    #print(ip)
+    #print(topic)
+    key = hash[ip]-1
+    nodes[key].cpu_file.write(payload+'\n') #debug
+    print('wrote to cpu file')
 
 def on_mem(client, userdata, msg):
+
     q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
-    #print("queue: ",message)#debug
 
     payload=message.payload.decode("utf-8")
     raw_topic=str(msg.topic)
@@ -165,7 +164,6 @@ def on_mem(client, userdata, msg):
     topic = temp[1]
     #print(ip)
     #print(topic)
-
     key = hash[ip]-1
     nodes[key].mem_file.write(payload+'\n') #debug
 
@@ -185,7 +183,6 @@ def on_status(client, userdata, msg):
     topic = temp[1]
     print(ip)
     print(topic)
-
     print("recvd disconnect message") #debug
     key = hash[ip]-1
     nodes[key].status = payload
@@ -197,64 +194,68 @@ def on_cpu_flag(client, userdata, msg):
     q.put(msg)
     while not q.empty():
         message = q.get()
-        payload=message.payload.decode("utf-8")
-        print(payload)
-        raw_topic=str(msg.topic)
-        print('raw_topic: ', raw_topic)
-        temp = raw_topic.split('/', 1)
-        print('temp: ',temp)
-        ip = temp[0]
-        topic = temp[1]
-        print(ip)
-        print(topic)
-        print("recvd disconnect message") #debug
-        key = hash[ip]-1
-        nodes[key].cpu_flag = payload
-        print("ip: ", ip) #debug
-        print("CPU_Flag: ",payload) #debug
+
+    payload=message.payload.decode("utf-8")
+    print(payload)
+    raw_topic=str(msg.topic)
+    print('raw_topic: ', raw_topic)
+    temp = raw_topic.split('/', 1)
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
+    print(ip)
+    print(topic)
+    print("recvd disconnect message") #debug
+    key = hash[ip]-1
+    nodes[key].cpu_flag = payload
+    print("ip: ", ip) #debug
+    print("CPU_Flag: ",payload) #debug
 
 def on_mem_flag(client, userdata, msg):
     q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
-        payload=message.payload.decode("utf-8")
-        print(payload)
-        raw_topic=str(msg.topic)
-        print('raw_topic: ', raw_topic)
-        temp = raw_topic.split('/', 1)
-        print('temp: ',temp)
-        ip = temp[0]
-        topic = temp[1]
-        print(ip)
-        print(topic)
-        print("recvd disconnect message") #debug
-        key = hash[ip]-1
-        nodes[key].mem_flag = payload
-        print("ip: ", ip) #debug
-        print("Mem_Flag: ",payload) #debug
+
+    payload=message.payload.decode("utf-8")
+    print(payload)
+    raw_topic=str(msg.topic)
+    print('raw_topic: ', raw_topic)
+    temp = raw_topic.split('/', 1)
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
+    print(ip)
+    print(topic)
+    print("recvd disconnect message") #debug
+    key = hash[ip]-1
+    nodes[key].mem_flag = payload
+    print("ip: ", ip) #debug
+    print("Mem_Flag: ",payload) #debug
 
 def on_change_var_res(client, userdata, msg):
     q = Queue(1)
     q.put(msg)
     while not q.empty():
         message = q.get()
-        payload=message.payload.decode("utf-8")
-        print(payload)
-        raw_topic=str(msg.topic)
-        print('raw_topic: ', raw_topic)
-        temp = raw_topic.split('/', 1)
-        print('temp: ',temp)
-        ip = temp[0]
-        topic = temp[1]
-        print(ip)
-        print(topic)
-        print("recvd change var response message") #debug
-        key = hash[ip]-1
-        message = json.loads(payload)
-        nodes[key].old_threshold.put(message["from"])
-        nodes[key].current_threshold.put(message["to"])
-        print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key].current_threshold) #debug
+    payload=message.payload.decode("utf-8")
+    print("I RECEIVED A CHANGE VAR RESPONSE")
+    print(payload)
+    raw_topic=str(msg.topic)
+    print('raw_topic: ', raw_topic)
+    temp = raw_topic.split('/', 1)
+    print('temp: ',temp)
+    ip = temp[0]
+    topic = temp[1]
+    print(ip)
+    print(topic)
+    print("recvd change var response message") #debug
+    key = hash[ip]-1
+    message = json.loads(payload)
+    nodes[key].old_threshold.put(message["from"])
+    nodes[key].current_threshold.put(message["to"])
+    print("I UPDATED THE NODES")
+    print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key].current_threshold) #debug
 
 def on_disconnect(client, userdata, rc):
     os.kill(os.getpid(), signal.SIGUSR1)
