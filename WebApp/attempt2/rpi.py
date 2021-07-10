@@ -94,8 +94,8 @@ def on_message(client, userdata, msg):
     old_threshold = current_threshold
     current_threshold = float(msg.payload)
     message = {
-            "from":old_threshold,
-            "to":current_threshold
+            "from":str(old_threshold),
+            "to":str(current_threshold)
     }
     to_pub = json.dumps(message)
     client.publish(local_ip+"/change_var_response", to_pub)
