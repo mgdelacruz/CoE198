@@ -114,6 +114,7 @@ def on_connect(client, userdata, flags, rc):
             #populate hash table, initialize connected flags and subscribe to node topics
             global hash
             nodes.append(Node(ip.rstrip()))
+            print("nodes[-1].ip: ",nodes[-1].ip)
             hash.update({nodes[-1].ip : Node.cnt})
             topic = nodes[-1].ip+'/+'
             print(topic)
