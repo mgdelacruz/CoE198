@@ -80,18 +80,17 @@ def signal_handler(signum, frame):
 
 def ping_sweep(pings):
     print("in fcn")
-    for i in range(pings):
-        for i in range(Node.cnt):
-            print("pinging this pi: ", nodes[i].ip)
-            nodes[i].num_pings += 1
-            response = os.system("sudo ping -c 1 " + nodes[i].ip + " > dump.txt")
-            #check the response:
-            if (not response):
-                nodes[i].ping = 'CONNECTED'
-            else:
-                nodes[i].ping = 'DISCONNECTED'
-                nodes[i].ping_fails += 1
-            print("reponse: ", nodes[i].ping, print)
+    for i in range(Node.cnt):
+        print("pinging this pi: ", nodes[i].ip)
+        nodes[i].num_pings = pings
+        response = os.system("sudo ping -c "+ str(pings) +" " + nodes[i].ip + " > dump.txt")
+        #check the response:
+        if (not response):
+            nodes[i].ping = 'CONNECTED'
+        else:
+            nodes[i].ping = 'DISCONNECTED'
+            nodes[i].ping_fails += 1
+        print("reponse: ", nodes[i].ping, print)
     for i in range(Node.cnt):
         nodes[i].packet_drp_rate = str((nodes[i].ping_fails/nodes[i].num_pings)*100)
 
