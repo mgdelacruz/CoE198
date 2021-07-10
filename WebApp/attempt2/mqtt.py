@@ -121,8 +121,8 @@ def on_connect(client, userdata, flags, rc):
             client.subscribe(topic)
 
             #performance monitor initialization
-            nodes[-1].cpu_file = open("cpu"+str(Node.cnt)+".txt", "a")
-            nodes[-1].mem_file = open("mem"+str(Node.cnt)+".txt", "a")
+            nodes[-1].cpu_file = open("cpu"+str(Node.cnt)+".txt", "w")
+            nodes[-1].mem_file = open("mem"+str(Node.cnt)+".txt", "w")
             print("opened cpu and mem files") #debug
 
             #threshold adjustment initialization

@@ -49,8 +49,8 @@ def on_connect(client, userdata, flags, rc):
 
     global cpu
     global mem
-    cpu = open("cpu.txt", "a")
-    mem = open("mem.txt", "a")
+    cpu = open("cpu.txt", "w")
+    mem = open("mem.txt", "w")
 
     try:
         cpu_thread = threading.Thread(target = cpu_monitor,args=())
