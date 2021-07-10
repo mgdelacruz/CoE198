@@ -79,14 +79,14 @@ def ping_sweep():
     print("in fcn")
     global server_to_app
     print("NODE CNT - 1: ", Node.cnt-1)
-    for i in range(Node.cnt-1):
+    for node in nodes:
         print("in for loop")
-        response = os.system("sudo ping -c 1 " + nodes[i].ip + " > dump.txt")
+        response = os.system("sudo ping -c 1 " + node.ip + " > dump.txt")
         #check the response:
         if (not response):
-            nodes[i].ping = 'CONNECTED'
+            node.ping = 'CONNECTED'
         else:
-            nodes[i].ping = 'DISCONNECTED'
+            node.ping = 'DISCONNECTED'
 
 # def change_var():
 #     while (True):
@@ -156,7 +156,7 @@ def on_cpu(client, userdata, msg):
     topic = temp[1]
     #print(ip)
     #print(topic)
-    key = hash[ip]-1
+    key = hash[ip]
     nodes[key].cpu_file.write(payload+'\n') #debug
     print('wrote to cpu file')
 
@@ -176,7 +176,7 @@ def on_mem(client, userdata, msg):
     topic = temp[1]
     #print(ip)
     #print(topic)
-    key = hash[ip]-1
+    key = hash[ip]
     nodes[key].mem_file.write(payload+'\n') #debug
 
 def on_status(client, userdata, msg):
@@ -196,7 +196,7 @@ def on_status(client, userdata, msg):
     print(ip)
     print(topic)
     print("recvd disconnect message") #debug
-    key = hash[ip]-1
+    key = hash[ip]
     nodes[key].status = payload
     print("ip: ", ip) #debug
     print("Status: ",payload) #debug
@@ -218,7 +218,7 @@ def on_cpu_flag(client, userdata, msg):
     print(ip)
     print(topic)
     print("recvd disconnect message") #debug
-    key = hash[ip]-1
+    key = hash[ip]
     nodes[key].cpu_flag = payload
     print("ip: ", ip) #debug
     print("CPU_Flag: ",payload) #debug
@@ -240,7 +240,7 @@ def on_mem_flag(client, userdata, msg):
     print(ip)
     print(topic)
     print("recvd disconnect message") #debug
-    key = hash[ip]-1
+    key = hash[ip]
     nodes[key].mem_flag = payload
     print("ip: ", ip) #debug
     print("Mem_Flag: ",payload) #debug
@@ -263,7 +263,7 @@ def on_change_var_res(client, userdata, msg):
     print(ip)
     print(topic)
     print("recvd change var response message") #debug
-    key = hash[ip]-1
+    key = hash[ip]
     json_decoded = json.loads(payload)
     print(type(json_decoded))
     print(json_decoded)
