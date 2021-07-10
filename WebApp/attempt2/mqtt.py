@@ -299,21 +299,20 @@ def ping_sweep_flask():
 
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
 def change_var_module():
-    # if request.method == 'POST':
-    #     #global value
-    #     #value.put(float(request.form['value']))
-    #     value = float(request.form['value'])
-    #     try:
-    #         #global client
-    #         client.publish("change_var", str(value))
-    #         print("I published")
-    #         return redirect('/module/thresh_adjust')
-    #         #return render_template('thresh_adjust.html', nodes = nodes)
-    #     except:
-    #         return 'Invalid input'
-    # else:
-    #     return render_template('thresh_adjust.html', nodes = nodes)
-    return render_template('thresh_adjust.html', nodes = nodes)
+    if request.method == 'POST':
+        #global value
+        #value.put(float(request.form['value']))
+        value = request.form['value']
+        try:
+            #global client
+            client.publish("change_var", value)
+            print("I published")
+            return redirect('/module/thresh_adjust')
+            #return render_template('thresh_adjust.html', nodes = nodes)
+        except:
+            return 'Invalid input'
+    else:
+        return render_template('thresh_adjust.html', nodes = nodes)
 
 # @app.route('/module/thresh_adjust/<float:value>')
 # def pub(value):
