@@ -109,7 +109,9 @@ def on_connect(client, userdata, flags, rc):
             global hash
             nodes.append(Node(ip.rstrip()))
             hash.update({nodes[-1].ip : Node.cnt})
-            client.subscribe(nodes[-1].ip+'/+')
+            topic = nodes[-1].ip+'/+'
+            print(topic)
+            client.subscribe(topic)
 
             #performance monitor initialization
             nodes[-1].cpu_file = open("cpu"+str(Node.cnt)+".txt", "a")
