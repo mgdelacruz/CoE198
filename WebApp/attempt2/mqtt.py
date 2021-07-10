@@ -134,7 +134,7 @@ def on_cpu(client, userdata, msg):
         message = q.get()
 
     print("queue: ",message)#debug
-    payload=message.payload.decode("utf-8")
+    payload=str(message.payload.decode("utf-8"))
     #print(payload)
     raw_topic=str(msg.topic)
     #print('raw_topic: ', raw_topic)
@@ -155,7 +155,7 @@ def on_mem(client, userdata, msg):
     while not q.empty():
         message = q.get()
 
-    payload=message.payload.decode("utf-8")
+    payload=str(message.payload.decode("utf-8"))
     raw_topic=str(msg.topic)
     #print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
@@ -173,7 +173,7 @@ def on_status(client, userdata, msg):
     while not q.empty():
         message = q.get()
 
-    payload=message.payload.decode("utf-8")
+    payload=str(message.payload.decode("utf-8"))
     print(payload)
     raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
@@ -195,7 +195,7 @@ def on_cpu_flag(client, userdata, msg):
     while not q.empty():
         message = q.get()
 
-    payload=message.payload.decode("utf-8")
+    payload=str(message.payload.decode("utf-8"))
     print(payload)
     raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
@@ -217,7 +217,7 @@ def on_mem_flag(client, userdata, msg):
     while not q.empty():
         message = q.get()
 
-    payload=message.payload.decode("utf-8")
+    payload=str(message.payload.decode("utf-8"))
     print(payload)
     raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
@@ -238,9 +238,10 @@ def on_change_var_res(client, userdata, msg):
     q.put(msg)
     while not q.empty():
         message = q.get()
-    payload=message.payload.decode("utf-8")
+    payload=str(message.payload.decode("utf-8"))
     print("I RECEIVED A CHANGE VAR RESPONSE")
     print(payload)
+    print(type(payload))
     raw_topic=str(msg.topic)
     print('raw_topic: ', raw_topic)
     temp = raw_topic.split('/', 1)
@@ -252,6 +253,7 @@ def on_change_var_res(client, userdata, msg):
     print("recvd change var response message") #debug
     key = hash[ip]-1
     json_decoded = json.loads(payload)
+    print(type(json_decoded))
     nodes[key].old_threshold.put(json_decoded["from"])
     nodes[key].current_threshold.put(json_decoded["to"])
     print("I UPDATED THE NODES")
