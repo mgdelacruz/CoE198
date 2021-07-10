@@ -254,6 +254,7 @@ def on_change_var_res(client, userdata, msg):
     key = hash[ip]-1
     json_decoded = json.loads(payload)
     print(type(json_decoded))
+    print(json_decoded)
     nodes[key].old_threshold.put(json_decoded["from"])
     nodes[key].current_threshold.put(json_decoded["to"])
     print("I UPDATED THE NODES")
