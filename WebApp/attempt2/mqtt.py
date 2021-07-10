@@ -75,19 +75,18 @@ def signal_handler(signum, frame):
 
 #MQTT Host Client Code:
 
-def ping_sweep():
+def ping_sweep(pings):
     print("in fcn")
-    global server_to_app
-    print("NODE CNT - 1: ", Node.cnt-1)
-    for node in nodes:
-        print("pinging this pi: ", node.ip)
-        response = os.system("sudo ping -c 1 " + node.ip + " > dump.txt")
-        #check the response:
-        if (not response):
-            node.ping = 'CONNECTED'
-        else:
-            node.ping = 'DISCONNECTED'
-        print("reponse: ", node.ping)
+    for i in range(pings):
+        for node in nodes:
+            print("pinging this pi: ", node.ip)
+            response = os.system("sudo ping -c 1 " + node.ip + " > dump.txt")
+            #check the response:
+            if (not response):
+                node.ping = 'CONNECTED'
+            else:
+                node.ping = 'DISCONNECTED'
+            print("reponse: ", node.ping, print)
 
 # def change_var():
 #     while (True):
@@ -307,17 +306,25 @@ def performance_monitor_module():
 
 @app.route('/module/uptime_monitor')
 def uptime_monitor_module():
-    return render_template('uptime_monitor.html', nodes = nodes)
+    if request.method == 'POST':
+        value = request.form['value']
+        try:
+            ping_sweep(value)
+            return redirect('/module/uptime_monitor')
+        except:
+            return 'Error in ping sweep'
+    else:
+        return render_template('uptime_monitor.html', nodes = nodes)
 
-@app.route('/module/uptime_monitor/ping_sweep')
-def ping_sweep_flask():
+# @app.route('/module/uptime_monitor/ping_sweep')
+# def ping_sweep_flask():
 
-    ping_sweep()
+#     ping_sweep()
 
-    try:
-        return redirect('/module/uptime_monitor')
-    except:
-        return 'There was a problem in executing ping_sweep'
+#     try:
+#         return redirect('/module/uptime_monitor')
+#     except:
+#         return 'There was a problem in executing ping_sweep'
 
 
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])

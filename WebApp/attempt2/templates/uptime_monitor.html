@@ -16,9 +16,9 @@
             <th>IP</th>
             <th>INTERNET<br>CONNECTIVITY</th>
             <th>SERVER<br>CONNECTIVITY</th>
-            <th>
+            <!--<th>
                 <a href="/module/uptime_monitor/ping_sweep">PING SWEEP</a>
-            </th>
+            </th>-->
 
         </tr>
         {% for node in nodes %}
@@ -31,5 +31,10 @@
         </tr>
         {% endfor %}
     </table>
+    <p> Enter number of pings to send out to each device</p>
+    <form action="/module/uptime_monitor" method="POST">
+        <input type="text" name="value" id="value">
+        <input type="submit" value="ping">
+    </form>
 </div>
 {% endblock %}
