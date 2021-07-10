@@ -12,16 +12,16 @@
             <th>Device</th>
             <th>ID</th>
             <th>IP</th>
-            <th>Previous Threshold</th>
-            <th>Current Threshold</th>
+            <th>Previous<br>Threshold</th>
+            <th>Current<br>Threshold</th>
         </tr>
         {% for node in nodes %}
         <tr>
             <td>{{ node.device }}</td>
             <td>{{ node.dev_no}}</td>
             <td>{{ node.ip}}</td>
-            <td>{{ node.old_threshold.get()}}</td>
-            <td>{{ node.current_threshold.get()}}</td>
+            <td>{{ node.print_old_thresh}}</td>
+            <td>{{ node.print_cur_thresh)}}</td>
         </tr>
         {% endfor %}
     </table>
