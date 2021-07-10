@@ -72,7 +72,7 @@ def cpu_monitor():
         print("published cpu")
         if x[0] > 90:
             client.publish(local_ip+'/cpu_flag',payload = 'HIGH', qos = 0, retain = True)
-        cpu.write(str(x)) #debug
+        cpu.write(str(x)+'\n') #debug
 
 def memory_monitor():
     while(True):
@@ -81,7 +81,7 @@ def memory_monitor():
         client.publish(local_ip+"/mem", y[0:5])
         if x > 90:
             client.publish(local_ip+'/mem_flag',payload = 'HIGH', qos = 0, retain = True)
-        mem.write(y) #debug
+        mem.write(y+'\n') #debug
 
 # The callback for when a PUBLISH message is received from the server.
 #handles change a variable feature
