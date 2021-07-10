@@ -251,9 +251,9 @@ def on_change_var_res(client, userdata, msg):
     print(topic)
     print("recvd change var response message") #debug
     key = hash[ip]-1
-    message = json.loads(payload)
-    nodes[key].old_threshold.put(message["from"])
-    nodes[key].current_threshold.put(message["to"])
+    json_decoded = json.loads(payload)
+    nodes[key].old_threshold.put(json_decoded["from"])
+    nodes[key].current_threshold.put(json_decoded["to"])
     print("I UPDATED THE NODES")
     print("ip, old threshold, current threshold: ",ip,' ,', nodes[key].old_threshold, ' ,', nodes[key].current_threshold) #debug
 
