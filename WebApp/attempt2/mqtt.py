@@ -78,6 +78,7 @@ def signal_handler(signum, frame):
 def ping_sweep():
     print("in fcn")
     global server_to_app
+    print("NODE CNT - 1: ", Node.cnt-1)
     for i in range(Node.cnt-1):
         print("in for loop")
         response = os.system("sudo ping -c 1 " + nodes[i].ip + " > dump.txt")
