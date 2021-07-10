@@ -80,7 +80,7 @@ def ping_sweep():
     global server_to_app
     print("NODE CNT - 1: ", Node.cnt-1)
     for node in nodes:
-        print("in for loop")
+        print("pinging this pi: ", node.ip)
         response = os.system("sudo ping -c 1 " + node.ip + " > dump.txt")
         #check the response:
         if (not response):
