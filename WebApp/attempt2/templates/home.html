@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang = "en">
+  <head>
+    <title> CATIFS via ICOTS</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+      {% load static %}
+
+      @media screen and (max-width: 480px){
+        body{
+          background-color: #fbfdfe;
+        }
+
+        div.brand{
+          position: absolute;
+          top: 20%;
+          left: 5%;
+          height: 40%;
+          width: 70%;
+        }
+
+        h1{
+          color: #233dff;
+          text-align: left;
+          font-family: Helvetica, Garamond;
+          font-size: 200%;
+          margin-top:0;
+          margin-bottom: 0;
+        }
+
+        p.desc{
+          color: #646565;
+          text-align: left;
+          font-family: Helvetica, Garamond;
+          font-size: 80%;
+          font-weight: bold;
+          margin-top: 0;
+          width: 100%;
+        }
+
+        a.mgmt_mod{
+          position: absolute;
+          top: 45%;
+          left: 5%;
+          color: #fbfdfe;
+          width: 60%;
+          font-family: Helvetica, Garamond;
+          font-size: 100%;
+          text-align: left;
+          padding: 1% 0 1% 5%;
+          text-decoration: none;
+          background-color: #312e2d;
+          border: none;
+        }
+        a.mgmt_mod:after {
+          content: ">";
+          width: 5%;
+          height: 5%;
+          float:right;
+          margin: 0 2% 0 0;
+        }
+
+      }
+
+      @media screen and (min-width: 481px){
+        body {
+           background-color: #fbfdfe;
+        }
+        div.brand {
+          position: absolute;
+          top: 17%;
+          left: 12%;
+          height: 45%;
+          width: 40%;
+        }
+
+        h1 {
+          color: #233dff;
+          text-align: left;
+          font-family: Helvetica, Garamond;
+          font-size: 390%;
+          margin-top: 2%;
+          margin-bottom: 0;
+        }
+
+        p.desc{
+          color: #646565;
+          text-align: left;
+          font-family: Helvetica, Garamond;
+          font-size: 120%;
+          font-weight: bold;
+          margin-top: 2%;
+        }
+
+        a.mgmt_mod{
+          position: absolute;
+          top: 63%;
+          left: 14%;
+          color: #fbfdfe;
+          font-family: Helvetica, Garamond;
+          font-size: 120%;
+          text-align: left;
+          padding: 0.8% 0 0.8% 1%;
+          text-decoration: none;
+          border: none;
+          width: 16%;
+          height: 3.5%;
+        }
+        a.mgmt_mod:link, a.query:visited{
+          background-color: #312e2d;
+        }
+        a.mgmt_mod:hover{
+          background-color: #acafb2;
+        }
+        a.mgmt_mod:active{
+          background-color: #312e2d;
+        }
+        a.mgmt_mod:after {
+          content: ">";
+          width: 10%;
+          height: 120%;
+          float:right;
+          margin: 0 5% 0 0;
+        }
+
+        div.img_element{
+          position: absolute;
+          top: 8%;
+          right: 0%;
+          height: 85%;
+          width: 60%;
+          background-image: url('{% static 'element.png' %}');
+          background-size: 100% 100%;
+          background-attachment: fixed;
+          z-index: -1;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div class = "brand" onselectstart="return false">
+      <div class = "logo_block"></div>
+      <h1>CATIFS via ICOTS</h1>
+      <p class = "desc">
+      Towards Cheap and Accurate Thermal Imagers for Fever Screening<br/>
+      via Interconnected COTS-based Devices with Optical and Thermal Sensors
+      </p>
+    </div>
+
+    <a href = "/module" class = "query"> MANAGEMENT MODULE</a>
+
+  </body>
+</html>

@@ -36,8 +36,7 @@ ping_prompt = None          #fifo file that gets prompt to ping devices
 nodes = []                  #array of Node objects
 change = False              #flag for changes to database
 client = None               #global Client
-#value = Queue(1)            #threshold value
-#change_var_mes = Queue()    #change var response
+value = Queue(1)            #threshold value
 class Node ():
     cnt = 0
     def __init__ (self, ip):
@@ -79,17 +78,11 @@ def ping_sweep():
         else:
             nodes[i].ping = 'DISCONNECTED'
 
-#def change_var():
-    #while not value.empty():
-        #print("changing variables to " + value) #debug
-        #client.publish("change_var", value)
-
-# def ping_prompt_loop():
-#     global ping_prompt
-#     while(True):
-#         prompt = input("Ping sweep? y/n:")
-#         if prompt == 'y':
-#             ping_sweep()
+def change_var():
+    while (True):
+        while not value.empty():
+            print("changing variables to " + value) #debug
+            client.publish("change_var", value)
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -101,7 +94,7 @@ def on_connect(client, userdata, flags, rc):
         #client.subscribe("self")
         f = open("node_IPs.txt", "r")
         for ip in f:
-            print("iterating through ips in node_ip.txt") #debug
+            print("iterating through ips in node_ip.txt") #debugs
             #populate hash table, initialize connected flags and subscribe to node topics
             global hash
             nodes.append(Node(ip.rstrip()))
@@ -117,29 +110,17 @@ def on_connect(client, userdata, flags, rc):
         f.close()
 
         #start threshold adjustment thread
-        # print("initializing threshold adjustment thread") #debug
-        # try:
-        #     change_var_thread = threading.Thread(target = change_var,args=())
-        # except:
-        #     print ("Error: unable to start change var thread")
-        #     client.disconnect() # disconnect
-        # else:
-        #     change_var_thread.daemon = True
-        #     change_var_thread.start()
-
-        #start ping prompt thread
-        # print("initializing ping prompt thread") #debug
-        # try:
-        #     ping_prompt_thread = threading.Thread(target = ping_prompt_loop,args=())
-        # except:
-        #     print ("Error: unable to start change var thread")
-        #     client.disconnect() # disconnect
-        # else:
-        #     ping_prompt_thread.daemon = True
-        #     ping_prompt_thread.start()
+        print("initializing threshold adjustment thread") #debug
+        try:
+            change_var_thread = threading.Thread(target = change_var,args=())
+        except:
+            print ("Error: unable to start change var thread")
+            client.disconnect() # disconnect
+        else:
+            change_var_thread.daemon = True
+            change_var_thread.start()
 
     else:
-        #logging.info("Bad connection Returned code=",str(rc))
         client.bad_connection_flag=True
 
 # The callback for when a PUBLISH message is received from the server.
@@ -275,8 +256,6 @@ def on_change_var_res(client, userdata, msg):
 def on_disconnect(client, userdata, rc):
     os.kill(os.getpid(), signal.SIGUSR1)
 
-#def on_log(client, userdata, level, buf):
-#    print("log: ",buf)
 
 def Initialise_client_object():
     #flags set
@@ -318,19 +297,19 @@ def ping_sweep_flask():
 @app.route('/module/thresh_adjust', methods=['POST', 'GET'])
 def change_var_module():
     if request.method == 'POST':
-        #global value
-        #value.put(float(request.form['value']))
-        value = float(request.form.get('value'))
+        global value
+        value.put(float(request.form['value']))
+        #value = float(request.form.get('value'))
         try:
-            global client
-            client.publish("change_var", value)
-            #return redirect('/module/thresh_adjust/<float:value>')
+            #global client
+            #client.publish("change_var", value)
+            return redirect('/module/thresh_adjust')
             #return render_template('thresh_adjust.html', nodes = nodes)
         except:
             return 'Invalid input'
     else:
         return render_template('thresh_adjust.html', nodes = nodes)
-    return render_template('thresh_adjust.html', nodes = nodes)
+    #return render_template('thresh_adjust.html', nodes = nodes)
 
 # @app.route('/module/thresh_adjust/<float:value>')
 # def pub(value):
