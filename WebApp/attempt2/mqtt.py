@@ -93,7 +93,7 @@ def ping_sweep(pings):
                 nodes[i].ping_fails += 1
             print("reponse: ", nodes[i].ping, print)
     for i in range(Node.cnt):
-        nodes[i].packet_drp_rate = str(nodes[i].ping_fails/nodes[i].num_pings)
+        nodes[i].packet_drp_rate = str((nodes[i].ping_fails/nodes[i].num_pings)*100)
 
 # def change_var():
 #     while (True):
