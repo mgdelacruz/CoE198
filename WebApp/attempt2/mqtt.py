@@ -106,6 +106,9 @@ def on_connect(client, userdata, flags, rc):
             nodes[-1].mem_file = open("mem"+str(Node.cnt)+".txt", "a")
             print("opened cpu and mem files") #debug
 
+            #threshold adjustment initialization
+            nodes[-1].current_threshold.put('37.5')
+            nodes[-1].old_threshold.put(None)
         print("done iterating through ips in node_ip.txt") #debug
         f.close()
 
