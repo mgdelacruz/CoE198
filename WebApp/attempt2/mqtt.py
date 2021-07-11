@@ -48,6 +48,8 @@ class Node ():
         self.mem_file = None
         self.cpu_flag = ''
         self.mem_flag = ''
+        self.cpu = ''
+        self.mem = ''
         self.status = 'DISCONNECTED'
         self.ping = ''
         self.current_threshold = Queue()
@@ -165,6 +167,7 @@ def on_cpu(client, userdata, msg):
     #print(topic)
     key = hash[ip]-1
     nodes[key].cpu_file.write(payload+'\n') #debug
+    nodes[key].cpu = payload
     print('wrote to cpu file')
 
 def on_mem(client, userdata, msg):
@@ -185,6 +188,7 @@ def on_mem(client, userdata, msg):
     #print(topic)
     key = hash[ip]-1
     nodes[key].mem_file.write(payload+'\n') #debug
+    nodes[key].mem = payload
 
 def on_status(client, userdata, msg):
     q = Queue(1)

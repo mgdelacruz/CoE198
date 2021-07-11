@@ -15,14 +15,18 @@
             <th>ID</th>
             <th>IP</th>
             <th>CPU<br>USAGE</th>
+            <th>LEVEL</th>
             <th>MEMORY<br>USAGE</th>
+            <th>LEVEL</th>
         </tr>
         {% for node in nodes %}
         <tr>
             <td>{{ node.device }}</td>
             <td>{{ node.dev_no}}</td>
             <td>{{ node.ip}}</td>
+            <td>{{ node.cpu}}</td>
             <td>{{ node.cpu_flag}}</td>
+            <td>{{ node.mem}}</td>
             <td>{{ node.mem_flag}}</td>
         </tr>
         {% endfor %}
