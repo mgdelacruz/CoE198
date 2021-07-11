@@ -342,7 +342,7 @@ def change_var_module():
         value = request.form['value']
         try:
             #global client
-            client.publish("change_var", value)
+            client.publish("change_var", payload = value, qos = 0, retain= True)
             print("I published")
             return redirect('/module/thresh_adjust')
             #return render_template('thresh_adjust.html', nodes = nodes)
