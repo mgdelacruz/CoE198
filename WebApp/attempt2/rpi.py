@@ -71,8 +71,10 @@ def cpu_monitor():
         x = psutil.getloadavg()
         client.publish(local_ip+"/cpu",str(x[0]))
         print("published cpu")
-        if x[0] > 90:
+        if x[0] > 80:
             client.publish(local_ip+'/cpu_flag',payload = 'HIGH', qos = 0, retain = True)
+        else:
+            client.publish(local_ip+'/cpu_flag',payload = 'LOW', qos = 0, retain = True)
         cpu.write(str(x)+'\n') #debug
 
 def memory_monitor():
@@ -80,8 +82,10 @@ def memory_monitor():
         x = (psutil.virtual_memory().used/psutil.virtual_memory().total)*100
         y = str(x)
         client.publish(local_ip+"/mem", y[0:5])
-        if x > 90:
+        if x > 80:
             client.publish(local_ip+'/mem_flag',payload = 'HIGH', qos = 0, retain = True)
+        else:
+            client.publish(local_ip+'/mem_flag',payload = 'LOW', qos = 0, retain = True)
         mem.write(y+'\n') #debug
 
 # The callback for when a PUBLISH message is received from the server.
